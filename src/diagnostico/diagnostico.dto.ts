@@ -1,0 +1,32 @@
+export class diagnosticoDto {
+  V6NumID: string;
+
+  id: number;
+  V17CodCIE10: string;
+  V18FecDiag: Date | null;
+  V19FecRemision: Date | null;
+  V20FecIngInst: Date | null;
+  V21TipoEstDiag: string;
+  V22MotNoHistop: string;
+  V23FecRecMuestra: Date | null;
+  V24FecInfHistop: Date | null;
+  V25CodHabIPS: string;
+  V26Fec1raCons: Date | null;
+  V27HistTumor: string;
+  V28GradoDifTum: string;
+  V29EstadifTum: string;
+  V30FecEstadif: Date | null;
+  V31PruebaHER2: string;
+  V32FecPruebaHER2: Date | null;
+  V33ResHER2: string;
+  V34EstadifDukes: string;
+  V35FecEstDukes: Date | null;
+  V36EstadifLinfMielo: string;
+  V37ClasGleason: string;
+  V38ClasRiesgoLL: string;
+  V39FecClasRiesgo: Date | null;
+  V40ObjTtoInicial: string;
+  V41IntervMed: string;
+  agrupador: string;
+  observaciones: string;
+}
