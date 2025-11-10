@@ -10,51 +10,49 @@ export class AdministrativoService {
     @InjectModel('administrativo') private administrativoModel: Model<IAdministrativo>,
   ) {}
 
-  // METODO PARA CREAR REGISTRO ADMINISTRATIVO
+  // Crear registro administrativo
   async crearAdministrativo(administrativo: administrativoDto): Promise<IAdministrativo> {
     const creacion = new this.administrativoModel(administrativo);
     return await creacion.save();
   }
 
-  // METODO PARA BUSCAR UN REGISTRO ADMINISTRATIVO POR ID
+  // Buscar registro por ID
   async buscarAdministrativo(id: string): Promise<IAdministrativo | null> {
     try {
-      const administrativoEncontrado = await this.administrativoModel.findOne({ _id: id }).exec();
-      return administrativoEncontrado;
+      return await this.administrativoModel.findOne({ _id: id }).exec();
     } catch (error) {
       console.error(error);
       return null;
     }
   }
 
-  // METODO PARA BUSCAR TODOS LOS REGISTROS ADMINISTRATIVOS
+  // Buscar todos los registros
   async buscarTodos(): Promise<IAdministrativo[]> {
     return await this.administrativoModel.find().exec();
   }
 
-  // METODO PARA ELIMINAR UN REGISTRO ADMINISTRATIVO POR ID
+  // Eliminar registro por ID
   async eliminarAdministrativo(id: string): Promise<any> {
     const respuesta = await this.administrativoModel.deleteOne({ _id: id }).exec();
     return respuesta.deletedCount === 1 ? respuesta : null;
   }
 
-  // METODO PARA ACTUALIZAR UN REGISTRO ADMINISTRATIVO
+  // Actualizar registro por ID
   async actualizarAdministrativo(id: string, administrativoDto: administrativoDto): Promise<IAdministrativo | null> {
     try {
-      const administrativoActualizado = await this.administrativoModel.findOneAndUpdate(
+      return await this.administrativoModel.findOneAndUpdate(
         { _id: id },
         administrativoDto,
         { new: true } // Retorna el documento actualizado
       ).exec();
-      return administrativoActualizado;
     } catch (error) {
       console.error(error);
       return null;
     }
   }
 
-  // METODO PARA CARGAR REGISTROS DESDE EXCEL
-  async guardarAdministrativos(administrativos: administrativoDto[]): Promise<any> {
+  // Guardar múltiples registros (Excel / Array) - preparado para centralizar cargue
+  async guardarDesdeArray(administrativos: administrativoDto[]): Promise<any> {
     const resultados: { accion: string; administrativo?: IAdministrativo; error?: string }[] = [];
 
     for (const admin of administrativos) {
@@ -67,7 +65,8 @@ export class AdministrativoService {
             admin,
             { new: true }
           ).exec();
-                    if (actualizado) {
+
+          if (actualizado) {
             resultados.push({ accion: 'actualizado', administrativo: actualizado });
           } else {
             resultados.push({ accion: 'error', error: 'No se pudo actualizar' });
@@ -78,14 +77,11 @@ export class AdministrativoService {
           const guardado = await nuevo.save();
           resultados.push({ accion: 'creado', administrativo: guardado });
         }
-      } catch (error) {
+      } catch (error: any) {
         resultados.push({ accion: 'error', error: error.message });
       }
     }
 
     return { ok: true, resultados };
   }
-
-
-
 }

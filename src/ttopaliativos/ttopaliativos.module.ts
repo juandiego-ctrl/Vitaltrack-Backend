@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ttopaliativosController } from './ttopaliativos.controller';
-import { ttopaliativosService } from './ttopaliativos.service';
+import { TtopaliativosController } from './ttopaliativos.controller';
+import { TtopaliativosService } from './ttopaliativos.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ttopaliativosSchema } from './ttopaliativos.modelo';
 
@@ -8,8 +8,8 @@ import { ttopaliativosSchema } from './ttopaliativos.modelo';
   imports: [
     MongooseModule.forFeature([{ name: 'ttopaliativos', schema: ttopaliativosSchema }]),
   ],
-  controllers: [ttopaliativosController],
-  providers: [ttopaliativosService],
-  exports: [ttopaliativosService], // Exportar el servicio para que otros módulos puedan usarlo
+  controllers: [TtopaliativosController],
+  providers: [TtopaliativosService],
+  exports: [TtopaliativosService], // Exportar el servicio para que otros módulos puedan usarlo
 })
 export class ttopaliativosModule {}

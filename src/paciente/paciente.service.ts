@@ -5,96 +5,99 @@ import { pacienteDto } from './paciente.dto';
 import { IPaciente } from './paciente.modelo';
 import { CreateManualDto } from './crear-manual.dto';
 
-// 📌 Importar todos los demás servicios
-import { diagnosticoService } from '../diagnostico/diagnostico.service';
+// Importar servicios relacionados
+import { DiagnosticoService } from '../diagnostico/diagnostico.service';
 import { AntecedentesService } from '../antecedentes/antecedentes.service';
 import { ArchivospacientesService } from '../archivospacientes/archivospacientes.service';
-import { ttocxService } from '../ttocx/ttocx.service';
-import { ttocxreconstructivaService } from '../ttocxreconstructiva/ttocxreconstructiva.service';
-import { ttopaliativosService } from '../ttopaliativos/ttopaliativos.service';
-import { ttoqtService } from '../ttoqt/ttoqt.service';
-import { ttortService } from '../ttort/ttort.service';
-import { ttotrasplanteService } from '../ttotrasplante/ttotrasplante.service';
+import { TtocxService } from '../ttocx/ttocx.service';
+import { TtocxreconstructivaService } from '../ttocxreconstructiva/ttocxreconstructiva.service';
+import { TtopaliativosService } from '../ttopaliativos/ttopaliativos.service';
+import { TtoqtService } from '../ttoqt/ttoqt.service';
+import { TtortService } from '../ttort/ttort.service';
+import { TtotrasplanteService } from '../ttotrasplante/ttotrasplante.service';
 
 @Injectable()
 export class PacienteService {
   constructor(
     @InjectModel('Paciente') private pacienteModel: Model<IPaciente>,
-    private readonly diagnosticoService: diagnosticoService,
+    private readonly diagnosticoService: DiagnosticoService,
     private readonly antecedentesService: AntecedentesService,
     private readonly archivospacientesService: ArchivospacientesService,
-    private readonly ttocxService: ttocxService,
-    private readonly ttocxreconstructivaService: ttocxreconstructivaService,
-    private readonly ttopaliativosService: ttopaliativosService,
-    private readonly ttoqtService: ttoqtService,
-    private readonly ttortService: ttortService,
-    private readonly ttotrasplanteService: ttotrasplanteService,
+    private readonly ttocxService: TtocxService,
+    private readonly ttocxreconstructivaService: TtocxreconstructivaService,
+    private readonly ttopaliativosService: TtopaliativosService,
+    private readonly ttoqtService: TtoqtService,
+    private readonly ttortService: TtortService,
+    private readonly ttotrasplanteService: TtotrasplanteService,
   ) {}
 
-  // 📌 Crear un paciente
-  async CrearPaciente(paciente: pacienteDto): Promise<IPaciente> {
-    const creacion = new this.pacienteModel(paciente);
+  // Crear paciente
+  async crearPaciente(dto: pacienteDto): Promise<IPaciente> {
+    const creacion = new this.pacienteModel(dto);
     return await creacion.save();
   }
 
-  // 📌 Buscar paciente por cédula
-  async BuscarCedula(cedula: string): Promise<IPaciente | null> {
+  async buscarPorPaciente(filtro: { pacienteId: string }): Promise<IPaciente[]> {
+  return await this.pacienteModel.find({ V6NumID: filtro.pacienteId }).exec();
+  }
+
+
+  // Buscar paciente por cédula
+  async buscarPorCedula(cedula: string): Promise<IPaciente | null> {
     return await this.pacienteModel.findOne({ V6NumID: cedula }).exec();
   }
 
-  // 📌 Buscar todos los pacientes
-  async BuscarTodo(): Promise<IPaciente[]> {
+  // Buscar todos los pacientes
+  async buscarTodos(): Promise<IPaciente[]> {
     return await this.pacienteModel.find().exec();
   }
 
-  // 📌 Eliminar paciente por cédula
-  async EliminarPaciente(cedula: string): Promise<any> {
+  // Eliminar paciente
+  async eliminarPaciente(cedula: string): Promise<boolean> {
     const respuesta = await this.pacienteModel.deleteOne({ V6NumID: cedula }).exec();
-    return respuesta.deletedCount === 1 ? respuesta : null;
+    return respuesta.deletedCount === 1;
   }
 
-  // 📌 Actualizar paciente por cédula
-  async ActualizarPaciente(cedula: string, pacienteDto: pacienteDto): Promise<IPaciente | null> {
+  // Actualizar paciente
+  async actualizarPaciente(cedula: string, dto: pacienteDto): Promise<IPaciente | null> {
     return await this.pacienteModel.findOneAndUpdate(
       { V6NumID: cedula },
-      pacienteDto,
+      dto,
       { new: true }
     ).exec();
   }
 
-  // 📌 Guardar múltiples pacientes (desde Excel)
-  async guardarPacientes(pacientes: pacienteDto[]): Promise<any> {
-    const resultados: {
-      accion: 'creado' | 'actualizado';
-      paciente: IPaciente | null;
-    }[] = [];
+  // Guardar múltiples pacientes (desde Excel o array)
+  async guardarDesdeArray(pacientes: pacienteDto[]): Promise<{ accion: string; paciente?: IPaciente; error?: string }[]> {
+    const resultados: { accion: string; paciente?: IPaciente; error?: string }[] = [];
 
     for (const paciente of pacientes) {
-      const existe = await this.pacienteModel.findOne({ V6NumID: paciente.V6NumID }).exec();
-
-      if (existe) {
-        const actualizado = await this.pacienteModel.findOneAndUpdate(
-          { V6NumID: paciente.V6NumID },
-          paciente,
-          { new: true }
-        ).exec();
-        resultados.push({ accion: 'actualizado', paciente: actualizado });
-      } else {
-        const nuevo = new this.pacienteModel(paciente);
-        const guardado = await nuevo.save();
-        resultados.push({ accion: 'creado', paciente: guardado });
+      try {
+        const existe = await this.pacienteModel.findOne({ V6NumID: paciente.V6NumID }).exec();
+        if (existe) {
+          const actualizado = await this.pacienteModel.findOneAndUpdate(
+            { V6NumID: paciente.V6NumID },
+            paciente,
+            { new: true }
+          ).exec();
+          resultados.push({ accion: 'actualizado', paciente: actualizado ?? undefined });
+        } else {
+          const nuevo = new this.pacienteModel(paciente);
+          const guardado = await nuevo.save();
+          resultados.push({ accion: 'creado', paciente: guardado });
+        }
+      } catch (error: any) {
+        resultados.push({ accion: 'error', error: error.message });
       }
     }
 
-    return { ok: true, resultados };
+    return resultados;
   }
 
-  // 📌 Obtener historial completo de un paciente
+  // Obtener historial completo de un paciente
   async obtenerHistorialCompleto(cedula: string) {
-    const paciente = await this.BuscarCedula(cedula);
-    if (!paciente) {
-      return { ok: false, mensaje: 'Paciente no encontrado' };
-    }
+    const paciente = await this.buscarPorCedula(cedula);
+    if (!paciente) return { ok: false, mensaje: 'Paciente no encontrado' };
 
     const id = paciente.V6NumID;
 
@@ -113,13 +116,8 @@ export class PacienteService {
     };
   }
 
-  async buscarPorPaciente(filtro: any) {
-    return await this.pacienteModel.find(filtro).exec();
-  }
-
-  // 📌 Guardar paciente + historial completo en todas las tablas
+  // Crear paciente + historial completo en todas las tablas
   async crearPacienteManual(data: CreateManualDto) {
-    // 1️⃣ Guardar paciente principal
     let paciente = await this.pacienteModel.findOne({ V6NumID: data.paciente.V6NumID }).exec();
     if (paciente) {
       paciente = await this.pacienteModel.findOneAndUpdate(
@@ -132,59 +130,65 @@ export class PacienteService {
       paciente = await nuevo.save();
     }
 
-    if (!paciente) {
-      return { ok: false, mensaje: 'No se pudo guardar el paciente' };
-    }
+    if (!paciente) return { ok: false, mensaje: 'No se pudo guardar el paciente' };
 
     const cedula = paciente.V6NumID;
 
-    // 2️⃣ Guardar en tablas relacionadas (usando .create())
-    if (data.diagnosticos?.length) {
-      for (const diag of data.diagnosticos) {
-        await this.diagnosticoService.create({ ...diag, pacienteId: cedula });
-      }
-    }
-    if (data.antecedentes?.length) {
-      for (const ant of data.antecedentes) {
-        await this.antecedentesService.create({ ...ant, pacienteId: cedula });
-      }
-    }
-    if (data.archivos?.length) {
-      for (const arc of data.archivos) {
-        await this.archivospacientesService.create({ ...arc, pacienteId: cedula });
-      }
-    }
-    if (data.ttocx?.length) {
-      for (const t of data.ttocx) {
-        await this.ttocxService.create({ ...t, pacienteId: cedula });
-      }
-    }
-    if (data.ttocxreconst?.length) {
-      for (const t of data.ttocxreconst) {
-        await this.ttocxreconstructivaService.create({ ...t, pacienteId: cedula });
-      }
-    }
-    if (data.ttopaliativos?.length) {
-      for (const t of data.ttopaliativos) {
-        await this.ttopaliativosService.create({ ...t, pacienteId: cedula });
-      }
-    }
-    if (data.ttoqt?.length) {
-      for (const t of data.ttoqt) {
-        await this.ttoqtService.create({ ...t, pacienteId: cedula });
-      }
-    }
-    if (data.ttort?.length) {
-      for (const t of data.ttort) { 
-        await this.ttortService.create({ ...t, pacienteId: cedula });
-      }
-    }
-    if (data.ttotrasplante?.length) {
-      for (const t of data.ttotrasplante) {
-        await this.ttotrasplanteService.create({ ...t, pacienteId: cedula });
-      }
-    }
+   // Guardar datos relacionados
+if (data.diagnosticos?.length) {
+  for (const diag of data.diagnosticos) {
+    await this.diagnosticoService.crearDiagnostico({ ...diag, pacienteId: cedula });
+  }
+}
 
-    return { ok: true, paciente };
+if (data.antecedentes?.length) {
+  for (const ant of data.antecedentes) {
+    await this.antecedentesService.crearAntecedente({ ...ant, pacienteId: cedula });
+  }
+}
+
+if (data.archivos?.length) {
+  for (const arc of data.archivos) {
+    await this.archivospacientesService.crearArchivoPaciente({ ...arc, pacienteId: cedula });
+  }
+}
+
+if (data.ttocx?.length) {
+  for (const t of data.ttocx) {
+    await this.ttocxService.crearTtocx({ ...t, pacienteId: cedula });
+  }
+}
+
+if (data.ttocxreconst?.length) {
+  for (const t of data.ttocxreconst) {
+    await this.ttocxreconstructivaService.crearTtocxreconstructiva({ ...t, pacienteId: cedula });
+  }
+}
+
+if (data.ttopaliativos?.length) {
+  for (const t of data.ttopaliativos) {
+    await this.ttopaliativosService.crearTtopaliativos({ ...t, pacienteId: cedula });
+  }
+}
+
+if (data.ttoqt?.length) {
+  for (const t of data.ttoqt) {
+    await this.ttoqtService.crearTtoqt({ ...t, pacienteId: cedula });
+  }
+}
+
+if (data.ttort?.length) {
+  for (const t of data.ttort) {
+    await this.ttortService.crearTtort({ ...t, pacienteId: cedula });
+  }
+}
+
+if (data.ttotrasplante?.length) {
+  for (const t of data.ttotrasplante) {
+    await this.ttotrasplanteService.crearTtotrasplante({ ...t, pacienteId: cedula });
+  }
+}
+
+return { ok: true, paciente };
   }
 }

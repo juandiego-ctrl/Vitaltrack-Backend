@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { excelarchivoController } from './excelarchivo.controller';
-import { excelarchivoService } from './excelarchivo.service';
+import { ExcelarchivoService } from './excelarchivo.service';
 import { excelarchivoSchema } from './excelarchivo.modelo';
 
 import { PacienteModule } from '../paciente/paciente.module'; // ✅ Importar
@@ -30,6 +30,6 @@ import { ttotrasplanteModule } from '../ttotrasplante/ttotrasplante.module';
     ttotrasplanteModule,
   ],
   controllers: [excelarchivoController],
-  providers: [excelarchivoService],
+  providers: [ExcelarchivoService],
 })
 export class ExcelarchivoModule {}

@@ -11,65 +11,52 @@ export class TtotrasplanteService {
     private readonly ttotrasplanteModel: Model<ITtotrasplante>,
   ) {}
 
-  // 📌 Crear un registro
   async crearTtotrasplante(dto: ttotrasplanteDto): Promise<ITtotrasplante> {
     const nuevo = new this.ttotrasplanteModel(dto);
     return await nuevo.save();
   }
 
-  // 📌 Buscar por ID
-  async buscarPorId(id: string): Promise<ITtotrasplante | null> {
-    try {
-      return await this.ttotrasplanteModel.findById(id).exec();
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
+  async buscarTtotrasplante(id: string): Promise<ITtotrasplante | null> {
+    return await this.ttotrasplanteModel.findById(id).exec();
   }
 
-  // 📌 Buscar todos
   async buscarTodos(): Promise<ITtotrasplante[]> {
     return await this.ttotrasplanteModel.find().exec();
   }
 
-  // 📌 Eliminar por ID
-  async eliminar(id: string): Promise<boolean> {
-    const respuesta = await this.ttotrasplanteModel.deleteOne({ _id: id }).exec();
-    return respuesta.deletedCount === 1;
+  async eliminarTtotrasplante(id: string): Promise<boolean> {
+    const res = await this.ttotrasplanteModel.deleteOne({ _id: id }).exec();
+    return res.deletedCount === 1;
   }
 
-  // 📌 Actualizar por ID
-  async actualizar(id: string, dto: ttotrasplanteDto): Promise<ITtotrasplante | null> {
-    try {
-      return await this.ttotrasplanteModel.findByIdAndUpdate(id, dto, {
-        new: true,
-      }).exec();
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
+  async actualizarTtotrasplante(id: string, dto: ttotrasplanteDto): Promise<ITtotrasplante | null> {
+    return await this.ttotrasplanteModel.findByIdAndUpdate(id, dto, { new: true }).exec();
   }
 
-  // 📌 Guardar múltiples registros desde Excel
-  async guardarDesdeExcel(
-    registros: ttotrasplanteDto[],
-  ): Promise<{ accion: string; ttotrasplante?: ITtotrasplante; error?: string }[]> {
-    const resultados: { accion: string; ttotrasplante?: ITtotrasplante; error?: string }[] = [];
-
-    for (const registro of registros) {
-      try {
-        const guardado = await this.crear(registro);
-        resultados.push({ accion: 'creado', ttotrasplante: guardado });
-      } catch (error: any) {
-        resultados.push({ accion: 'error', error: error.message });
-      }
-    }
-
-    return resultados;
-  }
-
-  // 📌 Buscar por paciente (filtros dinámicos)
   async buscarPorPaciente(filtro: any): Promise<ITtotrasplante[]> {
     return await this.ttotrasplanteModel.find(filtro).exec();
+  }
+
+  // ✅ Nuevo método para guardar desde un arreglo (para cargue Excel)
+  async guardarDesdeArray(datos: any[]): Promise<void> {
+    if (!Array.isArray(datos) || datos.length === 0) return;
+
+    const operaciones = datos.map(async (item) => {
+      if (!item.pacienteId) return;
+
+      // 🔄 Buscar si ya existe un registro de ese paciente
+      const existe = await this.ttotrasplanteModel.findOne({ pacienteId: item.pacienteId });
+
+      if (existe) {
+        // Si ya existe, actualizar
+        await this.ttotrasplanteModel.updateOne({ _id: existe._id }, item).exec();
+      } else {
+        // Si no existe, crear uno nuevo
+        const nuevo = new this.ttotrasplanteModel(item);
+        await nuevo.save();
+      }
+    });
+
+    await Promise.all(operaciones);
   }
 }

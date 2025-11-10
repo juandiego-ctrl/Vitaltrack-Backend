@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { excelarchivoService } from './excelarchivo.service';
+import { ExcelarchivoService } from './excelarchivo.service';
 import { excelarchivoDto } from './excelarchivo.dto';
 
 @Controller('excelarchivo')
 export class excelarchivoController {
-  constructor(private readonly excelarchivoService: excelarchivoService) {}
+  constructor(private readonly excelarchivoService: ExcelarchivoService) {}
 
   @Post()
   async crearExcelArchivo(@Body() excelarchivoDto: excelarchivoDto) {
@@ -51,7 +51,7 @@ export class excelarchivoController {
     if (!V6NumId) {
       return { ok: false, mensaje: 'El parámetro V6NumId es obligatorio' };
     }
-    return await this.excelarchivoService.procesarCargueGeneral(file, V6NumId);
+    return await this.excelarchivoService.procesarCargueGeneral(file);
   }
 
   @Get('/consulta-general/:V6NumId')

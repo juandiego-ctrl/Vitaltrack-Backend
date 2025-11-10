@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ttotrasplanteController } from './ttotrasplante.controller';
-import { ttotrasplanteService } from './ttotrasplante.service';
+import { TtotrasplanteController } from './ttotrasplante.controller';
+import { TtotrasplanteService } from './ttotrasplante.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ttotrasplanteSchema } from './ttotrasplante.modelo';
 
@@ -8,8 +8,8 @@ import { ttotrasplanteSchema } from './ttotrasplante.modelo';
   imports: [
     MongooseModule.forFeature([{ name: 'ttotrasplante', schema: ttotrasplanteSchema }]),
   ],
-  controllers: [ttotrasplanteController],
-  providers: [ttotrasplanteService],
-  exports: [ttotrasplanteService], // Exportar el servicio para que otros módulos puedan usarlo
+  controllers: [TtotrasplanteController],
+  providers: [TtotrasplanteService],
+  exports: [TtotrasplanteService], // Exportar el servicio para que otros módulos puedan usarlo
 })
 export class ttotrasplanteModule {}

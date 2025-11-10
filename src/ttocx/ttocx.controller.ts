@@ -1,33 +1,34 @@
 import {
-  Body,
   Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
   Post,
+  Get,
+  Delete,
+  Patch,
+  Body,
+  Param,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import * as xlsx from 'xlsx';
 
-import { ttocxService } from './ttocx.service';
+import { TtocxService } from './ttocx.service';
 import { ttocxDto } from './ttocx.dto';
 
 @Controller('ttocx')
-export class ttocxController {
-  constructor(private readonly ttocxService: ttocxService) {}
+export class TtocxController {
+  constructor(
+    private readonly ttocxService: TtocxService,
+  ) {}
 
   @Post()
-  async crearTtocx(@Body() ttocxDto: ttocxDto) {
-    const respuesta = await this.ttocxService.crearTtocx(ttocxDto);
+  async crear(@Body() dto: ttocxDto) {
+    const respuesta = await this.ttocxService.crearTtocx(dto);
     return { ok: true, respuesta };
   }
 
   @Get('/:id')
-  async consultarTtocx(@Param('id') id: string) {
-    return await this.ttocxService.buscarTtocx(id);
+  async consultarPorId(@Param('id') id: string) {
+    return await this.ttocxService.buscarPorId(id);
   }
 
   @Get()
@@ -37,49 +38,18 @@ export class ttocxController {
 
   @Delete('/:id')
   async eliminar(@Param('id') id: string) {
-    const eliminar = await this.ttocxService.eliminarTtocx(id);
-    if (eliminar != null) {
-      return 'Registro de tratamiento quirúrgico eliminado exitosamente';
-    }
-    return 'El registro de tratamiento quirúrgico no existe';
+    const eliminado = await this.ttocxService.eliminar(id);
+    return eliminado
+      ? { ok: true, mensaje: 'Registro eliminado exitosamente' }
+      : { ok: false, mensaje: 'El registro no existe' };
   }
 
   @Patch('/:id')
-  async actualizar(@Param('id') id: string, @Body() ttocxDto: ttocxDto) {
-    const ttocxActualizado = await this.ttocxService.actualizarTtocx(id, ttocxDto);
-    if (ttocxActualizado) {
-      return { ok: true, ttocxActualizado };
-    }
-    return {
-      ok: false,
-      mensaje: 'El registro de tratamiento quirúrgico no existe o no se pudo actualizar',
-    };
+  async actualizar(@Param('id') id: string, @Body() dto: ttocxDto) {
+    const actualizado = await this.ttocxService.actualizar(id, dto);
+    return actualizado
+      ? { ok: true, actualizado }
+      : { ok: false, mensaje: 'No se pudo actualizar' };
   }
 
-  // ✅ Solo UNA vez este endpoint
-  @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadExcel(@UploadedFile() file: Express.Multer.File) {
-    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const data: any[] = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    const registros: ttocxDto[] = data.map((item) => ({
-      V6NumID: item['V6NumID'],
-      V74RecibioCirugia: item['V74RecibioCirugia'],
-      V75NumCirugias: Number(item['V75NumCirugias']),
-      V76FecPrimCir: item['V76FecPrimCir'] ? new Date(item['V76FecPrimCir']) : new Date(),
-      V77CodIPSCir1: item['V77CodIPSCir1'],
-      V78CodCUPSCir1: item['V78CodCUPSCir1'],
-      V79UbicTempCir1: item['V79UbicTempCir1'],
-      V80FecUltCir: item['V80FecUltCir'] ? new Date(item['V80FecUltCir']) : new Date(),
-      V81MotUltCir: item['V81MotUltCir'],
-      V82CodIPSCir2: item['V82CodIPSCir2'],
-      V83CodCUPSCir2: item['V83CodCUPSCir2'],
-      V84UbicTempCir2: item['V84UbicTempCir2'],
-      V85EstVitalPostCir: item['V85EstVitalPostCir'],
-    }));
-
-    return this.ttocxService.guardarTtocxExcel(registros);
-  }
 }

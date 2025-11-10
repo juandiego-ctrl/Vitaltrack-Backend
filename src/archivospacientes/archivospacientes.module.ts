@@ -10,6 +10,6 @@ import { archivospacientesSchema } from './archivospacientes.modelo';
   ],
   controllers: [ArchivospacientesController],
   providers: [ArchivospacientesService],
-  exports: [ArchivospacientesService], // 👈 Esto lo hace accesible a otros módulos
+  exports: [ArchivospacientesService], 
 })
 export class ArchivospacientesModule {}

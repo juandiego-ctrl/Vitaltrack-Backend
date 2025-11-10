@@ -1,10 +1,18 @@
-import { NestFactory } from '@nestjs/core'; // Importacion libreria clase 
-import { AppModule } from './app.module'; //importanción de una clase perteneciente al proyecto
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors()
-  await app.listen(process.env.PORT ?? 3000);
+  // 🔒 Configuración CORS (permite que tu frontend en Vercel acceda)
+  app.enableCors({
+    origin: '*', // puedes reemplazar '*' por tu dominio de frontend si quieres más seguridad
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`🚀 Server running on port ${port}`);
 }
 bootstrap();
