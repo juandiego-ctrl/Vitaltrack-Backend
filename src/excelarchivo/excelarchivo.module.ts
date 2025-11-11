@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { excelarchivoController } from './excelarchivo.controller';
+import { ExcelarchivoController } from './excelarchivo.controller';
 import { ExcelarchivoService } from './excelarchivo.service';
-import { excelarchivoSchema } from './excelarchivo.modelo';
+import { ExcelarchivoSchema } from './excelarchivo.modelo';
 
 import { PacienteModule } from '../paciente/paciente.module'; // ✅ Importar
 import { diagnosticoModule } from '../diagnostico/diagnostico.module';
@@ -17,7 +17,7 @@ import { ttotrasplanteModule } from '../ttotrasplante/ttotrasplante.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'excelarchivo', schema: excelarchivoSchema }]),
+    MongooseModule.forFeature([{ name: 'excelarchivo', schema: ExcelarchivoSchema }]),
     PacienteModule, // ✅ Esto resuelve el error
     diagnosticoModule,
     AntecedentesModule,
@@ -29,7 +29,7 @@ import { ttotrasplanteModule } from '../ttotrasplante/ttotrasplante.module';
     ttortModule,
     ttotrasplanteModule,
   ],
-  controllers: [excelarchivoController],
+  controllers: [ExcelarchivoController],
   providers: [ExcelarchivoService],
 })
 export class ExcelarchivoModule {}

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export const excelarchivoSchema = new mongoose.Schema(
+export const ExcelarchivoSchema = new mongoose.Schema(
     {
         id: Number,
         nomArchivo: String,
