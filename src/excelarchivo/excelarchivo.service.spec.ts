@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { excelarchivoService} from './excelarchivo.service';
+import { ExcelarchivoService} from './excelarchivo.service';
 
 describe('ExcelarchivoService', () => {
-  let service: excelarchivoService;
+  let service: ExcelarchivoService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [excelarchivoService],
+      providers: [ExcelarchivoService],
     }).compile();
 
-    service = module.get<excelarchivoService>(excelarchivoService);
+    service = module.get<ExcelarchivoService>(ExcelarchivoService);
   });
 
   it('should be defined', () => {

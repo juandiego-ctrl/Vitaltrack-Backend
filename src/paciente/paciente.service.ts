@@ -44,7 +44,7 @@ export class PacienteService {
 
   // Buscar paciente por cédula
   async buscarPorCedula(cedula: string): Promise<IPaciente | null> {
-    return await this.pacienteModel.findOne({ V6NumID: cedula }).exec();
+    return await this.pacienteModel.findOne({ V6NumId: cedula }).exec();
   }
 
   // Buscar todos los pacientes

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 export const ExcelarchivoSchema = new mongoose.Schema(
     {
+        pacienteId: { type: String, required: true, ref: "paciente" }, 
         id: Number,
         nomArchivo: String,
         fecCarga: Date,
@@ -12,6 +13,7 @@ export const ExcelarchivoSchema = new mongoose.Schema(
 );
 
 export interface IExcelarchivo extends mongoose.Document {
+    pacienteId: string;
     id: number;
     nomArchivo: string;
     fecCarga: Date;

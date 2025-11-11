@@ -1,4 +1,5 @@
 export class excelarchivoDto {
+    readonly pacienteId: string; 
     id: number;
     nomArchivo: string;
     fecCarga: Date;

@@ -4,7 +4,7 @@ import { PacienteController } from './paciente.controller';
 import { PacienteService } from './paciente.service';
 import { PacienteSchema } from './paciente.modelo';
 
-// Importar todos los módulos que exportan servicios que usa PacienteService
+// Módulos de servicios relacionados (usar nombres exactos de exportación)
 import { diagnosticoModule } from '../diagnostico/diagnostico.module';
 import { AntecedentesModule } from '../antecedentes/antecedentes.module';
 import { ArchivospacientesModule } from '../archivospacientes/archivospacientes.module';
@@ -18,18 +18,18 @@ import { ttotrasplanteModule } from '../ttotrasplante/ttotrasplante.module';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Paciente', schema: PacienteSchema }]),
-    diagnosticoModule,             // 🔹 IMPORTANTE
-    AntecedentesModule,            // 🔹
-    ArchivospacientesModule,       // 🔹
-    ttocxModule,                    // 🔹
-    ttocxreconstructivaModule,      // 🔹
-    ttopaliativosModule,            // 🔹
-    ttoqtModule,                    // 🔹
-    ttortModule,                    // 🔹
-    ttotrasplanteModule,            // 🔹
+    diagnosticoModule,
+    AntecedentesModule,
+    ArchivospacientesModule,
+    ttocxModule,
+    ttocxreconstructivaModule,
+    ttopaliativosModule,
+    ttoqtModule,
+    ttortModule,
+    ttotrasplanteModule,
   ],
   controllers: [PacienteController],
   providers: [PacienteService],
-  exports: [PacienteService], // Exportar el servicio para que otros módulos puedan usarlo
+  exports: [PacienteService],
 })
 export class PacienteModule {}
