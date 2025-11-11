@@ -38,30 +38,33 @@ export class PacienteService {
   }
 
   async buscarPorPaciente(filtro: { pacienteId: string }): Promise<IPaciente[]> {
-  return await this.pacienteModel.find({ V6NumID: filtro.pacienteId }).exec();
+    return await this.pacienteModel.find({ V6NumId: filtro.pacienteId }).exec(); // CORRECCIÓN: Estandarizado a 'V6NumId' (asumiendo camelCase en schema)
   }
-
 
   // Buscar paciente por cédula
   async buscarPorCedula(cedula: string): Promise<IPaciente | null> {
     return await this.pacienteModel.findOne({ V6NumId: cedula }).exec();
   }
 
-  // Buscar todos los pacientes
-  async buscarTodos(): Promise<IPaciente[]> {
-    return await this.pacienteModel.find().exec();
+  // Buscar todos los pacientes (con paginación)
+  async buscarTodos(page: number = 1, limit: number = 10): Promise<IPaciente[]> {
+    return await this.pacienteModel
+      .find()
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
   }
 
   // Eliminar paciente
   async eliminarPaciente(cedula: string): Promise<boolean> {
-    const respuesta = await this.pacienteModel.deleteOne({ V6NumID: cedula }).exec();
+    const respuesta = await this.pacienteModel.deleteOne({ V6NumId: cedula }).exec(); // CORRECCIÓN: Estandarizado a 'V6NumId'
     return respuesta.deletedCount === 1;
   }
 
   // Actualizar paciente
   async actualizarPaciente(cedula: string, dto: pacienteDto): Promise<IPaciente | null> {
     return await this.pacienteModel.findOneAndUpdate(
-      { V6NumID: cedula },
+      { V6NumId: cedula }, // CORRECCIÓN: Estandarizado a 'V6NumId'
       dto,
       { new: true }
     ).exec();
@@ -73,10 +76,10 @@ export class PacienteService {
 
     for (const paciente of pacientes) {
       try {
-        const existe = await this.pacienteModel.findOne({ V6NumID: paciente.V6NumId }).exec();
+        const existe = await this.pacienteModel.findOne({ V6NumId: paciente.V6NumId }).exec(); // CORRECCIÓN: Estandarizado a 'V6NumId'
         if (existe) {
           const actualizado = await this.pacienteModel.findOneAndUpdate(
-            { V6NumID: paciente.V6NumId },
+            { V6NumId: paciente.V6NumId }, // CORRECCIÓN: Estandarizado
             paciente,
             { new: true }
           ).exec();
@@ -118,10 +121,10 @@ export class PacienteService {
 
   // Crear paciente + historial completo en todas las tablas
   async crearPacienteManual(data: CreateManualDto) {
-    let paciente = await this.pacienteModel.findOne({ V6NumID: data.paciente.V6NumId }).exec();
+    let paciente = await this.pacienteModel.findOne({ V6NumId: data.paciente.V6NumId }).exec(); // CORRECCIÓN: Estandarizado a 'V6NumId'
     if (paciente) {
       paciente = await this.pacienteModel.findOneAndUpdate(
-        { V6NumID: data.paciente.V6NumId },
+        { V6NumId: data.paciente.V6NumId }, // CORRECCIÓN: Estandarizado
         data.paciente,
         { new: true }
       ).exec();
@@ -134,61 +137,61 @@ export class PacienteService {
 
     const cedula = paciente.V6NumId;
 
-   // Guardar datos relacionados
-if (data.diagnosticos?.length) {
-  for (const diag of data.diagnosticos) {
-    await this.diagnosticoService.crearDiagnostico({ ...diag, pacienteId: cedula });
-  }
-}
+    // Guardar datos relacionados
+    if (data.diagnosticos?.length) {
+      for (const diag of data.diagnosticos) {
+        await this.diagnosticoService.crearDiagnostico({ ...diag, pacienteId: cedula });
+      }
+    }
 
-if (data.antecedentes?.length) {
-  for (const ant of data.antecedentes) {
-    await this.antecedentesService.crearAntecedente({ ...ant, pacienteId: cedula });
-  }
-}
+    if (data.antecedentes?.length) {
+      for (const ant of data.antecedentes) {
+        await this.antecedentesService.crearAntecedente({ ...ant, pacienteId: cedula });
+      }
+    }
 
-if (data.archivos?.length) {
-  for (const arc of data.archivos) {
-    await this.archivospacientesService.crearArchivoPaciente({ ...arc, pacienteId: cedula });
-  }
-}
+    if (data.archivos?.length) {
+      for (const arc of data.archivos) {
+        await this.archivospacientesService.crearArchivoPaciente({ ...arc, pacienteId: cedula });
+      }
+    }
 
-if (data.ttocx?.length) {
-  for (const t of data.ttocx) {
-    await this.ttocxService.crearTtocx({ ...t, pacienteId: cedula });
-  }
-}
+    if (data.ttocx?.length) {
+      for (const t of data.ttocx) {
+        await this.ttocxService.crearTtocx({ ...t, pacienteId: cedula });
+      }
+    }
 
-if (data.ttocxreconst?.length) {
-  for (const t of data.ttocxreconst) {
-    await this.ttocxreconstructivaService.crearTtocxreconstructiva({ ...t, pacienteId: cedula });
-  }
-}
+    if (data.ttocxreconst?.length) {
+      for (const t of data.ttocxreconst) {
+        await this.ttocxreconstructivaService.crearTtocxreconstructiva({ ...t, pacienteId: cedula });
+      }
+    }
 
-if (data.ttopaliativos?.length) {
-  for (const t of data.ttopaliativos) {
-    await this.ttopaliativosService.crearTtopaliativos({ ...t, pacienteId: cedula });
-  }
-}
+    if (data.ttopaliativos?.length) {
+      for (const t of data.ttopaliativos) {
+        await this.ttopaliativosService.crearTtopaliativos({ ...t, pacienteId: cedula });
+      }
+    }
 
-if (data.ttoqt?.length) {
-  for (const t of data.ttoqt) {
-    await this.ttoqtService.crearTtoqt({ ...t, pacienteId: cedula });
-  }
-}
+    if (data.ttoqt?.length) {
+      for (const t of data.ttoqt) {
+        await this.ttoqtService.crearTtoqt({ ...t, pacienteId: cedula });
+      }
+    }
 
-if (data.ttort?.length) {
-  for (const t of data.ttort) {
-    await this.ttortService.crearTtort({ ...t, pacienteId: cedula });
-  }
-}
+    if (data.ttort?.length) {
+      for (const t of data.ttort) {
+        await this.ttortService.crearTtort({ ...t, pacienteId: cedula });
+      }
+    }
 
-if (data.ttotrasplante?.length) {
-  for (const t of data.ttotrasplante) {
-    await this.ttotrasplanteService.crearTtotrasplante({ ...t, pacienteId: cedula });
-  }
-}
+    if (data.ttotrasplante?.length) {
+      for (const t of data.ttotrasplante) {
+        await this.ttotrasplanteService.crearTtotrasplante({ ...t, pacienteId: cedula });
+      }
+    }
 
-return { ok: true, paciente };
+    return { ok: true, paciente };
   }
 }

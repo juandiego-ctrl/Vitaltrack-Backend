@@ -6,10 +6,11 @@ import {
   Patch,
   Body,
   Param,
-  UploadedFile,
-  UseInterceptors,
+  Query,
+  BadRequestException,
+  NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { PacienteService } from './paciente.service';
 import { pacienteDto } from './paciente.dto';
 import { CreateManualDto } from './crear-manual.dto';
@@ -21,14 +22,12 @@ export class PacienteController {
   // ✅ Crear un paciente nuevo
   @Post()
   async crearPaciente(@Body() dto: pacienteDto) {
-    console.log('📥 Datos recibidos en backend:', dto);
+    if (!dto.V6NumId) throw new BadRequestException('Debe proporcionar un número de ID válido.');
     try {
       const respuesta = await this.pacienteService.crearPaciente(dto);
-      console.log('✅ Paciente creado correctamente:', respuesta);
       return { ok: true, data: respuesta };
     } catch (error) {
-      console.error('❌ Error en crearPaciente:', error);
-      return { ok: false, mensaje: 'Error al crear paciente', error: error.message };
+      throw new InternalServerErrorException('Error al crear paciente: ' + error.message);
     }
   }
 
@@ -39,52 +38,57 @@ export class PacienteController {
       const paciente = await this.pacienteService.crearPacienteManual(data);
       return { ok: true, data: paciente };
     } catch (error) {
-      return { ok: false, mensaje: 'Error al crear paciente manual', error: error.message };
+      throw new InternalServerErrorException('Error al crear paciente manual: ' + error.message);
     }
   }
 
   // ✅ Consultar un paciente por cédula
   @Get('/:cedula')
   async consultarPaciente(@Param('cedula') cedula: string) {
+    if (!cedula) throw new BadRequestException('Debe proporcionar una cédula válida.');
     const paciente = await this.pacienteService.buscarPorCedula(cedula);
-    return paciente
-      ? { ok: true, data: paciente }
-      : { ok: false, mensaje: 'Paciente no encontrado' };
+    if (!paciente) throw new NotFoundException('Paciente no encontrado');
+    return { ok: true, data: paciente };
   }
 
-  // ✅ Consultar todos los pacientes
+  // ✅ Consultar todos los pacientes (con paginación opcional)
   @Get()
-  async consultarTodos() {
-    const pacientes = await this.pacienteService.buscarTodos();
+  async consultarTodos(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    const pacientes = await this.pacienteService.buscarTodos(page, limit);
     return { ok: true, total: pacientes.length, data: pacientes };
   }
 
   // ✅ Obtener historial completo de un paciente (relaciones con todas las tablas)
   @Get('/historial/:cedula')
   async obtenerHistorial(@Param('cedula') cedula: string) {
+    if (!cedula) throw new BadRequestException('Debe proporcionar una cédula válida.');
     try {
       const historial = await this.pacienteService.obtenerHistorialCompleto(cedula);
+      if (!historial.ok) throw new NotFoundException(historial.mensaje);
       return { ok: true, data: historial };
     } catch (error) {
-      return { ok: false, mensaje: 'Error al obtener historial', error: error.message };
+      throw new InternalServerErrorException('Error al obtener historial: ' + error.message);
     }
   }
 
   // ✅ Actualizar paciente por cédula
   @Patch('/:cedula')
   async actualizar(@Param('cedula') cedula: string, @Body() dto: pacienteDto) {
+    if (!cedula) throw new BadRequestException('Debe proporcionar una cédula válida.');
     const actualizado = await this.pacienteService.actualizarPaciente(cedula, dto);
-    return actualizado
-      ? { ok: true, data: actualizado }
-      : { ok: false, mensaje: 'El paciente no existe o no se pudo actualizar' };
+    if (!actualizado) throw new NotFoundException('El paciente no existe o no se pudo actualizar');
+    return { ok: true, data: actualizado };
   }
 
   // ✅ Eliminar paciente por cédula
   @Delete('/:cedula')
   async eliminar(@Param('cedula') cedula: string) {
+    if (!cedula) throw new BadRequestException('Debe proporcionar una cédula válida.');
     const eliminado = await this.pacienteService.eliminarPaciente(cedula);
-    return eliminado
-      ? { ok: true, mensaje: 'Paciente eliminado exitosamente' }
-      : { ok: false, mensaje: 'El paciente no existe' };
+    if (!eliminado) throw new NotFoundException('El paciente no existe');
+    return { ok: true, mensaje: 'Paciente eliminado exitosamente' };
   }
 }
