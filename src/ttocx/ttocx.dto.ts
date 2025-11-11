@@ -1,5 +1,9 @@
 export class ttocxDto {
-    V6NumID: string;
+    readonly pacienteId: string; 
+    readonly campo1?: string;
+    readonly campo2?: string;
+    readonly campo3?: string;
+    V6NumId: string;
     V74RecibioCirugia: string;
     V75NumCirugias: number;
     V76FecPrimCir: Date;

@@ -1,5 +1,6 @@
 export class ttortDto {
-    V6NumID: string;
+    readonly pacienteId: string;
+    V6NumId: string;
     V86RecibioRadioterapia: string;
     V87NumSesionesRadio: number;
     V88FecIniEsq1Radio: Date;

@@ -1,4 +1,3 @@
-// ttort.controller.ts
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { TtortService } from './ttort.service';
 import { ttortDto } from './ttort.dto';
@@ -7,35 +6,53 @@ import { ttortDto } from './ttort.dto';
 export class TtortController {
   constructor(private readonly ttortService: TtortService) {}
 
+  // 🟢 Crear nuevo registro
   @Post()
   async crear(@Body() dto: ttortDto) {
     const respuesta = await this.ttortService.crearTtort(dto);
     return { ok: true, respuesta };
   }
 
-  @Get('/:id')
-  async consultarPorId(@Param('id') id: string) {
-    return await this.ttortService.buscarTtort(id);
-  }
-
+  // 🟢 Obtener todos
   @Get()
   async consultarTodos() {
-    return await this.ttortService.buscarTodos();
+    const registros = await this.ttortService.buscarTodos();
+    return { ok: true, total: registros.length, data: registros };
   }
 
-  @Delete('/:id')
-  async eliminar(@Param('id') id: string) {
-    const eliminar = await this.ttortService.eliminarTtort(id);
-    return eliminar
-      ? 'Registro de tratamiento de radioterapia eliminado exitosamente'
-      : 'El registro de tratamiento de radioterapia no existe';
+  // 🟢 Obtener por ID
+  @Get('/:id')
+  async consultarPorId(@Param('id') id: string) {
+    const registro = await this.ttortService.buscarTtort(id);
+    return registro
+      ? { ok: true, data: registro }
+      : { ok: false, mensaje: 'Registro no encontrado' };
   }
 
+  // 🟢 Obtener tratamientos por paciente
+  @Get('/paciente/:pacienteId')
+  async consultarPorPaciente(@Param('pacienteId') pacienteId: string) {
+    const registros = await this.ttortService.buscarPorPaciente(pacienteId);
+    return registros.length > 0
+      ? { ok: true, total: registros.length, data: registros }
+      : { ok: false, mensaje: 'No hay registros de radioterapia para este paciente' };
+  }
+
+  // 🟡 Actualizar registro
   @Patch('/:id')
   async actualizar(@Param('id') id: string, @Body() dto: ttortDto) {
     const actualizado = await this.ttortService.actualizarTtort(id, dto);
     return actualizado
       ? { ok: true, actualizado }
       : { ok: false, mensaje: 'El registro no existe o no se pudo actualizar' };
+  }
+
+  // 🔴 Eliminar registro
+  @Delete('/:id')
+  async eliminar(@Param('id') id: string) {
+    const eliminado = await this.ttortService.eliminarTtort(id);
+    return eliminado
+      ? { ok: true, mensaje: 'Registro de radioterapia eliminado correctamente' }
+      : { ok: false, mensaje: 'No se encontró el registro' };
   }
 }

@@ -31,19 +31,27 @@ export class TtocxService {
   }
 
   // Actualizar registro
-  async actualizar(id: string, ttocxDto: ttocxDto): Promise<ITtocx | null> {
-    return await this.ttocxModel.findByIdAndUpdate(id, ttocxDto, { new: true }).exec();
+  async actualizar(id: string, ttocx: ttocxDto): Promise<ITtocx | null> {
+    return await this.ttocxModel.findByIdAndUpdate(id, ttocx, { new: true }).exec();
   }
 
-  // Guardar registros desde array (para uso con ExcelCargaService)
+  // Guardar registros desde array (para cargue masivo)
   async guardarDesdeArray(
-    registros: ttocxDto[]
+    registros: ttocxDto[],
   ): Promise<{ accion: string; ttocx?: ITtocx; error?: string }[]> {
     const resultados: { accion: string; ttocx?: ITtocx; error?: string }[] = [];
 
     for (const registro of registros) {
       try {
-        const existe = await this.ttocxModel.findOne({ pacienteId: registro.V6NumID }).exec();
+        if (!registro.pacienteId) {
+          resultados.push({
+            accion: 'error',
+            error: 'El campo pacienteId es obligatorio en el registro.',
+          });
+          continue;
+        }
+
+        const existe = await this.ttocxModel.findOne({ pacienteId: registro.pacienteId }).exec();
 
         if (existe) {
           const actualizado = await this.ttocxModel

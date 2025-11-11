@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { diagnosticoController } from './diagnostico.controller';
+import { DiagnosticoController } from './diagnostico.controller';
 import { DiagnosticoService } from './diagnostico.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { diagnosticoSchema } from './diagnostico.modelo';
@@ -8,7 +8,7 @@ import { diagnosticoSchema } from './diagnostico.modelo';
   imports: [
     MongooseModule.forFeature([{ name: 'diagnostico', schema: diagnosticoSchema }]),
   ],
-  controllers: [diagnosticoController],
+  controllers: [DiagnosticoController],
   providers: [DiagnosticoService],
   exports: [DiagnosticoService], // Exportar el servicio para que otros módulos puedan
 })

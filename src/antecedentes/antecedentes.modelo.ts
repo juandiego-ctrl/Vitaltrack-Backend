@@ -12,5 +12,5 @@ export interface IAntecedentes extends Document {
   V42AntCancerPrim: string;
   V43FecDiagAnt: Date;
   V44TipoCancerAnt: string;
-  V6NumID: String;
+  V6NumId: String;
 }

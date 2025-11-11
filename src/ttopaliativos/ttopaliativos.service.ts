@@ -1,4 +1,3 @@
-// ttopaliativos.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -43,8 +42,8 @@ export class TtopaliativosService {
   }
 
   // ✅ Buscar registros por paciente
-  async buscarPorPaciente(filtro: any): Promise<ITtopaliativos[]> {
-    return await this.ttopaliativosModel.find(filtro).exec();
+  async buscarPorPaciente(pacienteId: string): Promise<ITtopaliativos[]> {
+    return await this.ttopaliativosModel.find({ pacienteId }).exec();
   }
 
   // ✅ Guardar desde array para cargue masivo
@@ -52,16 +51,20 @@ export class TtopaliativosService {
     if (!Array.isArray(datos) || datos.length === 0) return;
 
     const operaciones = datos.map(async (item) => {
+      // Validar que el registro tenga el paciente asociado
       if (!item.pacienteId) return;
 
-      // Buscar si ya existe el registro para este paciente
-      const existe = await this.ttopaliativosModel.findOne({ pacienteId: item.pacienteId });
+      // Buscar si ya existe un registro de ttopaliativos para este paciente
+      const existe = await this.ttopaliativosModel.findOne({ pacienteId: item.pacienteId }).exec();
 
       if (existe) {
-        // Actualizar si ya existe
-        await this.ttopaliativosModel.updateOne({ _id: existe._id }, item).exec();
+        // 🔄 Actualizar si ya existe
+        await this.ttopaliativosModel.updateOne(
+          { _id: existe._id },
+          { $set: item }
+        ).exec();
       } else {
-        // Crear nuevo registro
+        // 🆕 Crear nuevo registro
         const nuevo = new this.ttopaliativosModel(item);
         await nuevo.save();
       }

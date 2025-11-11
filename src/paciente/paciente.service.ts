@@ -73,10 +73,10 @@ export class PacienteService {
 
     for (const paciente of pacientes) {
       try {
-        const existe = await this.pacienteModel.findOne({ V6NumID: paciente.V6NumID }).exec();
+        const existe = await this.pacienteModel.findOne({ V6NumID: paciente.V6NumId }).exec();
         if (existe) {
           const actualizado = await this.pacienteModel.findOneAndUpdate(
-            { V6NumID: paciente.V6NumID },
+            { V6NumID: paciente.V6NumId },
             paciente,
             { new: true }
           ).exec();
@@ -99,7 +99,7 @@ export class PacienteService {
     const paciente = await this.buscarPorCedula(cedula);
     if (!paciente) return { ok: false, mensaje: 'Paciente no encontrado' };
 
-    const id = paciente.V6NumID;
+    const id = paciente.V6NumId;
 
     return {
       ok: true,
@@ -112,16 +112,16 @@ export class PacienteService {
       ttopaliativos: await this.ttopaliativosService.buscarPorPaciente(id),
       ttoqt: await this.ttoqtService.buscarPorPaciente(id),
       ttort: await this.ttortService.buscarPorPaciente(id),
-      ttotrasplante: await this.ttotrasplanteService.buscarPorPaciente(id),
+      ttotrasplante: await this.ttotrasplanteService.buscarPorPaciente({ pacienteId: id }),
     };
   }
 
   // Crear paciente + historial completo en todas las tablas
   async crearPacienteManual(data: CreateManualDto) {
-    let paciente = await this.pacienteModel.findOne({ V6NumID: data.paciente.V6NumID }).exec();
+    let paciente = await this.pacienteModel.findOne({ V6NumID: data.paciente.V6NumId }).exec();
     if (paciente) {
       paciente = await this.pacienteModel.findOneAndUpdate(
-        { V6NumID: data.paciente.V6NumID },
+        { V6NumID: data.paciente.V6NumId },
         data.paciente,
         { new: true }
       ).exec();
@@ -132,7 +132,7 @@ export class PacienteService {
 
     if (!paciente) return { ok: false, mensaje: 'No se pudo guardar el paciente' };
 
-    const cedula = paciente.V6NumID;
+    const cedula = paciente.V6NumId;
 
    // Guardar datos relacionados
 if (data.diagnosticos?.length) {

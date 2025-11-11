@@ -1,4 +1,3 @@
-// ttoqt.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -39,29 +38,32 @@ export class TtoqtService {
     return await this.ttoqtModel.findByIdAndUpdate(id, dto, { new: true }).exec();
   }
 
-  // ✅ Buscar por paciente
-  async buscarPorPaciente(filtro: any): Promise<ITtoqt[]> {
-    return await this.ttoqtModel.find(filtro).exec();
+  // ✅ Buscar todos los tratamientos de un paciente
+  async buscarPorPaciente(pacienteId: string): Promise<ITtoqt[]> {
+    return await this.ttoqtModel.find({ pacienteId }).exec();
   }
 
-  // ✅ Nuevo método para guardar desde un arreglo (para cargue Excel)
+  // ✅ Guardar desde un arreglo (para cargue Excel)
   async guardarDesdeArray(datos: any[]): Promise<void> {
     if (!Array.isArray(datos) || datos.length === 0) return;
 
     const operaciones = datos.map(async (item) => {
       if (!item.pacienteId) return;
 
-      // 🔄 Buscar si ya existe un registro de ese paciente y tratamiento
+      // 🔍 Buscar si ya existe un registro del tratamiento para este paciente
       const existe = await this.ttoqtModel.findOne({
         pacienteId: item.pacienteId,
-        tratamiento: item.tratamiento,
-      });
+        V86RecibioQT: item.V86RecibioQT, // ajusta si tu campo identificador del tratamiento es distinto
+      }).exec();
 
       if (existe) {
-        // Si ya existe, actualizar
-        await this.ttoqtModel.updateOne({ _id: existe._id }, item).exec();
+        // 🔄 Si existe, actualiza
+        await this.ttoqtModel.updateOne(
+          { _id: existe._id },
+          { $set: item }
+        ).exec();
       } else {
-        // Si no existe, crear uno nuevo
+        // 🆕 Si no existe, crea nuevo
         const nuevo = new this.ttoqtModel(item);
         await nuevo.save();
       }

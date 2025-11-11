@@ -5,7 +5,7 @@ export class pacienteDto {
   V3PrimerApe: string;
   V4SegundoApe: string;
   V5TipoID: string;
-  V6NumID: string;
+  V6NumId: string;
   V7FecNac: Date;
   V8Sexo: string;
   V9Ocup: string;

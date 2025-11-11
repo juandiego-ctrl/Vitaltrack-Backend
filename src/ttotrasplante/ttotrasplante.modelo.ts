@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 export const ttotrasplanteSchema = new mongoose.Schema(
     {
+        pacienteId: { type: String, required: true },
         V106RecibioTrasplanteCM: String,
         V107TipoTrasplanteCM: String,
         V108UbicTempTrasplanteCM: String,
@@ -12,10 +13,11 @@ export const ttotrasplanteSchema = new mongoose.Schema(
 );
 
 export interface ITtotrasplante extends mongoose.Document {
+    pacienteId: string;
     V106RecibioTrasplanteCM: string;
     V107TipoTrasplanteCM: string;
     V108UbicTempTrasplanteCM: string;
     V109FecTrasplanteCM: Date;
     V110CodIPSTrasplanteCM: string;
-    V6NumID: String;
+    V6NumId: String;
 }

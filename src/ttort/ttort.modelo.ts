@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 export const ttortSchema = new mongoose.Schema(
     {
+        pacienteId: { type: String, required: true },
         V86RecibioRadioterapia: String,
         V87NumSesionesRadio: Number,
         V88FecIniEsq1Radio: Date,
@@ -27,6 +28,7 @@ export const ttortSchema = new mongoose.Schema(
 );
 
 export interface ITtort extends mongoose.Document {
+    pacienteId: string;
     V86RecibioRadioterapia: string;
     V87NumSesionesRadio: number;
     V88FecIniEsq1Radio: Date;
@@ -47,5 +49,5 @@ export interface ITtort extends mongoose.Document {
     V103FecFinUltEsqRadio: Date;
     V104CaractUltEsqRadio: string;
     V105MotFinUltEsqRadio: string;
-    V6NumID: String;
+    V6NumId: String;
 }

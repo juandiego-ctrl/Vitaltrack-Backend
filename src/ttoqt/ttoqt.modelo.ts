@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 export const ttoqtSchema = new mongoose.Schema(
     {
+        pacienteId: { type: String, required: true },
         V45RecibioQuimio: String,
         V46NumFasesQuimio: Number,
         V47NumCiclosQuimio: Number,
@@ -45,6 +46,7 @@ export const ttoqtSchema = new mongoose.Schema(
 );
 
 export interface ITtoqt extends mongoose.Document {
+    pacienteId: string;
     V45RecibioQuimio: string;
     V46NumFasesQuimio: number;
     V47NumCiclosQuimio: number;
@@ -83,5 +85,5 @@ export interface ITtoqt extends mongoose.Document {
     V71FecFinUltEsq: Date;
     V72CaractUltEsq: string;
     V73MotFinUltEsq: string;
-    V6NumID: String;
+    V6NumId: String;
 }

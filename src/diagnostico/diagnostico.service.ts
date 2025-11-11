@@ -13,11 +13,21 @@ export class DiagnosticoService {
 
   // Crear un diagnóstico
   async crearDiagnostico(dto: diagnosticoDto): Promise<IDiagnostico> {
-    const creacion = new this.diagnosticoModel(dto);
+    if (!dto.V6NumId && !dto.V6NumId) {
+      throw new Error('El diagnóstico debe tener el campo V6NumID del paciente.');
+    }
+
+    // Normalizamos el nombre del campo por si viene como V6NumId
+    const data = {
+      ...dto,
+      V6NumId: dto.V6NumId || dto.V6NumId,
+    };
+
+    const creacion = new this.diagnosticoModel(data);
     return await creacion.save();
   }
 
-  // Buscar un diagnóstico por ID
+  // Buscar un diagnóstico por ID (MongoDB ObjectId)
   async buscarDiagnostico(id: string): Promise<IDiagnostico | null> {
     try {
       return await this.diagnosticoModel.findById(id).exec();
@@ -41,16 +51,14 @@ export class DiagnosticoService {
   // Actualizar un diagnóstico
   async actualizarDiagnostico(id: string, dto: diagnosticoDto): Promise<IDiagnostico | null> {
     try {
-      return await this.diagnosticoModel
-        .findByIdAndUpdate(id, dto, { new: true })
-        .exec();
+      return await this.diagnosticoModel.findByIdAndUpdate(id, dto, { new: true }).exec();
     } catch (error) {
       console.error(error);
       return null;
     }
   }
 
-  // Guardar múltiples diagnósticos desde Array (para cargue centralizado)
+  // Guardar múltiples diagnósticos desde un array (para cargue masivo)
   async guardarDesdeArray(
     lista: diagnosticoDto[],
   ): Promise<{ accion: string; diagnostico?: IDiagnostico; error?: string }[]> {
@@ -69,8 +77,8 @@ export class DiagnosticoService {
     return resultados;
   }
 
-  // Buscar diagnósticos por paciente
-  async buscarPorPaciente(filtro: any): Promise<IDiagnostico[]> {
-    return await this.diagnosticoModel.find(filtro).exec();
+  // ✅ Buscar diagnósticos por paciente (por cédula)
+  async buscarPorPaciente(V6NumId: string): Promise<IDiagnostico[]> {
+    return await this.diagnosticoModel.find({ V6NumId }).exec();
   }
 }

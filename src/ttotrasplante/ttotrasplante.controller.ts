@@ -1,5 +1,12 @@
-// ttotrasplante.controller.ts
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { TtotrasplanteService } from './ttotrasplante.service';
 import { ttotrasplanteDto } from './ttotrasplante.dto';
 
@@ -7,35 +14,50 @@ import { ttotrasplanteDto } from './ttotrasplante.dto';
 export class TtotrasplanteController {
   constructor(private readonly ttotrasplanteService: TtotrasplanteService) {}
 
+  // Crear un nuevo registro
   @Post()
   async crear(@Body() dto: ttotrasplanteDto) {
     const respuesta = await this.ttotrasplanteService.crearTtotrasplante(dto);
-    return { ok: true, respuesta };
+    return { ok: true, data: respuesta };
   }
 
-  @Get('/:id')
-  async consultarPorId(@Param('id') id: string) {
-    return await this.ttotrasplanteService.buscarTtotrasplante(id);
-  }
-
+  // Obtener todos los registros
   @Get()
   async consultarTodos() {
-    return await this.ttotrasplanteService.buscarTodos();
+    return this.ttotrasplanteService.buscarTodos();
   }
 
-  @Delete('/:id')
+  // Obtener un registro por ID
+  @Get(':id')
+  async consultarPorId(@Param('id') id: string) {
+    const trasplante = await this.ttotrasplanteService.buscarTtotrasplante(id);
+    return trasplante
+      ? { ok: true, data: trasplante }
+      : { ok: false, mensaje: 'No encontrado' };
+  }
+
+  // Eliminar un registro
+  @Delete(':id')
   async eliminar(@Param('id') id: string) {
-    const eliminar = await this.ttotrasplanteService.eliminarTtotrasplante(id);
-    return eliminar
-      ? 'Registro de trasplante eliminado exitosamente'
-      : 'El registro de trasplante no existe';
+    const eliminado = await this.ttotrasplanteService.eliminarTtotrasplante(id);
+    return eliminado
+      ? { ok: true, mensaje: 'Eliminado correctamente' }
+      : { ok: false, mensaje: 'No encontrado' };
   }
 
-  @Patch('/:id')
+  // Actualizar un registro
+  @Patch(':id')
   async actualizar(@Param('id') id: string, @Body() dto: ttotrasplanteDto) {
     const actualizado = await this.ttotrasplanteService.actualizarTtotrasplante(id, dto);
     return actualizado
-      ? { ok: true, actualizado }
-      : { ok: false, mensaje: 'El registro no existe o no se pudo actualizar' };
+      ? { ok: true, data: actualizado }
+      : { ok: false, mensaje: 'No se pudo actualizar o no existe' };
+  }
+
+  // 🔍 Consultar trasplantes por paciente
+  @Get('paciente/:pacienteId')
+  async buscarPorPaciente(@Param('pacienteId') pacienteId: string) {
+    const resultado = await this.ttotrasplanteService.buscarPorPaciente({ pacienteId });
+    return { ok: true, data: resultado };
   }
 }
