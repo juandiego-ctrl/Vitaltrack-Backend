@@ -14,7 +14,7 @@ import { IPaciente } from '../paciente/paciente.modelo';
 @Injectable()
 export class ExcelarchivoService {
   constructor(
-    @InjectModel('excelarchivo')
+    @InjectModel('Excelarchivo')
     private excelarchivoModel: Model<IExcelarchivo>,
 
     private pacienteService: PacienteService,
