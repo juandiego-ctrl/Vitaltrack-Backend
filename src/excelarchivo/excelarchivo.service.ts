@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { excelarchivoDto } from './excelarchivo.dto';
@@ -33,7 +33,7 @@ export class ExcelarchivoService {
     private ttotrasplanteService: TtotrasplanteService,
   ) {}
 
-  // CRUD básico
+  // 📌 CRUD básico
   async crearExcelArchivo(excelarchivo: excelarchivoDto): Promise<IExcelarchivo> {
     return await new this.excelarchivoModel(excelarchivo).save();
   }
@@ -43,7 +43,7 @@ export class ExcelarchivoService {
   }
 
   async buscarTodos(): Promise<IExcelarchivo[]> {
-    return await this.excelarchivoModel.find().exec();
+    return await this.excelarchivoModel.find().sort({ fechaCargue: -1 }).exec();
   }
 
   async eliminarExcelArchivo(id: string): Promise<boolean> {
@@ -55,10 +55,10 @@ export class ExcelarchivoService {
     return await this.excelarchivoModel.findByIdAndUpdate(id, excelarchivoDto, { new: true }).exec();
   }
 
-  // Método auxiliar para mapear campos de Excel
+  // 🧩 Auxiliar: mapea campos de Excel a un objeto de modelo
   private extraerCampos(row: any, campos: string[], v6NumId: string) {
-    const obj: any = { pacienteId: v6NumId }; // estandarizamos a pacienteId para servicios
-    campos.forEach(campo => {
+    const obj: any = { pacienteId: v6NumId };
+    campos.forEach((campo) => {
       if (row[campo] !== undefined && row[campo] !== null && row[campo] !== '') {
         obj[campo] = row[campo];
       }
@@ -66,74 +66,137 @@ export class ExcelarchivoService {
     return obj;
   }
 
-  // Procesar cargue general desde Excel
+  // 📦 Procesa un archivo Excel completo
   async procesarCargueGeneral(file: Express.Multer.File) {
-    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const data: any[] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    if (!file) throw new BadRequestException('No se ha recibido ningún archivo.');
 
-    if (!data.length) throw new Error('El archivo Excel no contiene datos');
+    try {
+      const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const data: any[] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-    const resumen = {
-      diagnosticos: 0, antecedentes: 0, archivospacientes: 0,
-      ttocx: 0, ttocxreconstructiva: 0, ttopaliativos: 0, ttoqt: 0,
-      ttort: 0, ttotrasplante: 0
-    };
+      if (!data.length) throw new BadRequestException('El archivo Excel no contiene datos.');
 
-    for (const row of data) {
-      const v6NumId = row['V6NumID'] || row['V6NumId'];
-      if (!v6NumId) throw new Error(`Falta V6NumId en una fila: ${JSON.stringify(row)}`);
+      const resumen = {
+        diagnosticos: 0,
+        antecedentes: 0,
+        archivospacientes: 0,
+        ttocx: 0,
+        ttocxreconstructiva: 0,
+        ttopaliativos: 0,
+        ttoqt: 0,
+        ttort: 0,
+        ttotrasplante: 0,
+      };
 
-      // Cargue de cada módulo usando guardarDesdeArray si aplica
-      const diagObj = this.extraerCampos(row, ['V17CodCIE10','V18FecDiag','V19FecRemision'], v6NumId);
-      if (Object.keys(diagObj).length > 1) { await this.diagnosticoService.guardarDesdeArray([diagObj]); resumen.diagnosticos++; }
+      for (const row of data) {
+        const v6NumId = row['V6NumID'] || row['V6NumId'];
+        if (!v6NumId) continue; // ignora filas sin ID
 
-      const antObj = this.extraerCampos(row, ['V42AntCancerPrim','V43FecDiagAnt'], v6NumId);
-      if (Object.keys(antObj).length > 1) { await this.antecedentesService.guardarDesdeArray([antObj]); resumen.antecedentes++; }
+        // Mapeos por servicio
+        const diagObj = this.extraerCampos(row, ['V17CodCIE10', 'V18FecDiag', 'V19FecRemision'], v6NumId);
+        if (Object.keys(diagObj).length > 1) {
+          await this.diagnosticoService.guardarDesdeArray([diagObj]);
+          resumen.diagnosticos++;
+        }
 
-      const ttoqtObj = this.extraerCampos(row, ['V45RecibioQuimio','V46NumFasesQuimio'], v6NumId);
-      if (Object.keys(ttoqtObj).length > 1) { await this.ttoqtService.guardarDesdeArray([ttoqtObj]); resumen.ttoqt++; }
+        const antObj = this.extraerCampos(row, ['V42AntCancerPrim', 'V43FecDiagAnt'], v6NumId);
+        if (Object.keys(antObj).length > 1) {
+          await this.antecedentesService.guardarDesdeArray([antObj]);
+          resumen.antecedentes++;
+        }
 
-      const ttocxObj = this.extraerCampos(row, ['V74RecibioCirugia','V75NumCirugias'], v6NumId);
-      if (Object.keys(ttocxObj).length > 1) { await this.ttocxService.guardarDesdeArray([ttocxObj]); resumen.ttocx++; }
+        const ttoqtObj = this.extraerCampos(row, ['V45RecibioQuimio', 'V46NumFasesQuimio'], v6NumId);
+        if (Object.keys(ttoqtObj).length > 1) {
+          await this.ttoqtService.guardarDesdeArray([ttoqtObj]);
+          resumen.ttoqt++;
+        }
 
-      const ttortObj = this.extraerCampos(row, ['V86RecibioRadioterapia','V87NumSesionesRadio'], v6NumId);
-      if (Object.keys(ttortObj).length > 1) { await this.ttortService.guardarDesdeArray([ttortObj]); resumen.ttort++; }
+        const ttocxObj = this.extraerCampos(row, ['V74RecibioCirugia', 'V75NumCirugias'], v6NumId);
+        if (Object.keys(ttocxObj).length > 1) {
+          await this.ttocxService.guardarDesdeArray([ttocxObj]);
+          resumen.ttocx++;
+        }
 
-      const ttotrasObj = this.extraerCampos(row, ['V106RecibioTrasplanteCM','V107TipoTrasplanteCM'], v6NumId);
-      if (Object.keys(ttotrasObj).length > 1) { await this.ttotrasplanteService.guardarDesdeArray([ttotrasObj]); resumen.ttotrasplante++; }
+        const ttortObj = this.extraerCampos(row, ['V86RecibioRadioterapia', 'V87NumSesionesRadio'], v6NumId);
+        if (Object.keys(ttortObj).length > 1) {
+          await this.ttortService.guardarDesdeArray([ttortObj]);
+          resumen.ttort++;
+        }
 
-      const ttocxrObj = this.extraerCampos(row, ['V111RecibioCirugiaReconst','V112FecCirugiaReconst'], v6NumId);
-      if (Object.keys(ttocxrObj).length > 1) { await this.ttocxreconstructivaService.guardarDesdeArray([ttocxrObj]); resumen.ttocxreconstructiva++; }
+        const ttotrasObj = this.extraerCampos(row, ['V106RecibioTrasplanteCM', 'V107TipoTrasplanteCM'], v6NumId);
+        if (Object.keys(ttotrasObj).length > 1) {
+          await this.ttotrasplanteService.guardarDesdeArray([ttotrasObj]);
+          resumen.ttotrasplante++;
+        }
 
-      const ttopalObj = this.extraerCampos(row, ['V114RecibioCuidadoPaliativo','V115FecPrimConsCP'], v6NumId);
-      if (Object.keys(ttopalObj).length > 1) { await this.ttopaliativosService.guardarDesdeArray([ttopalObj]); resumen.ttopaliativos++; }
+        const ttocxrObj = this.extraerCampos(row, ['V111RecibioCirugiaReconst', 'V112FecCirugiaReconst'], v6NumId);
+        if (Object.keys(ttocxrObj).length > 1) {
+          await this.ttocxreconstructivaService.guardarDesdeArray([ttocxrObj]);
+          resumen.ttocxreconstructiva++;
+        }
 
-      const archObj = this.extraerCampos(row, ['datos_excel','soportes_pdf'], v6NumId);
-      if (Object.keys(archObj).length > 1) { await this.archivospacientesService.guardarDesdeArray([archObj]); resumen.archivospacientes++; }
+        const ttopalObj = this.extraerCampos(row, ['V114RecibioCuidadoPaliativo', 'V115FecPrimConsCP'], v6NumId);
+        if (Object.keys(ttopalObj).length > 1) {
+          await this.ttopaliativosService.guardarDesdeArray([ttopalObj]);
+          resumen.ttopaliativos++;
+        }
+
+        const archObj = this.extraerCampos(row, ['datos_excel', 'soportes_pdf'], v6NumId);
+        if (Object.keys(archObj).length > 1) {
+          await this.archivospacientesService.guardarDesdeArray([archObj]);
+          resumen.archivospacientes++;
+        }
+      }
+
+      await new this.excelarchivoModel({
+        nombreArchivo: file.originalname,
+        fechaCargue: new Date(),
+      }).save();
+
+      return {
+        ok: true,
+        mensaje: '✅ Cargue general procesado con éxito.',
+        resumen,
+      };
+    } catch (err) {
+      console.error('❌ Error en procesarCargueGeneral:', err.message);
+      throw new InternalServerErrorException('Error procesando el archivo Excel.');
     }
-
-    // Guardar registro del Excel cargado
-    await new this.excelarchivoModel({
-      nombreArchivo: file.originalname,
-      fechaCargue: new Date()
-    }).save();
-
-    return { ok: true, mensaje: 'Cargue general procesado con éxito', resumen };
   }
 
-  // Consulta general de un paciente
+  // 🔍 Consulta general por número de documento
   async consultaGeneral(V6NumId: string) {
-    return {
-      ok: true,
-      paciente: await this.pacienteService.buscarPorPaciente({ pacienteId: V6NumId }),
-      diagnosticos: await this.diagnosticoService.buscarPorPaciente(V6NumId),
-      antecedentes: await this.antecedentesService.buscarPorPaciente(V6NumId),
-      ttocxreconstructiva: await this.ttocxreconstructivaService.buscarPorPaciente(V6NumId),
-      ttopaliativos: await this.ttopaliativosService.buscarPorPaciente(V6NumId),
-      ttoqt: await this.ttoqtService.buscarPorPaciente(V6NumId),
-      ttort: await this.ttortService.buscarPorPaciente(V6NumId),
-      ttotrasplante: await this.ttotrasplanteService.buscarPorPaciente({ pacienteId: V6NumId }),
-    };
+    if (!V6NumId) throw new BadRequestException('Debe proporcionar un número de documento válido.');
+
+    try {
+      const paciente = await this.pacienteService.buscarPorPaciente({ pacienteId: V6NumId });
+      const diagnosticos = await this.diagnosticoService.buscarPorPaciente(V6NumId);
+      const antecedentes = await this.antecedentesService.buscarPorPaciente(V6NumId);
+      const ttocxreconstructiva = await this.ttocxreconstructivaService.buscarPorPaciente(V6NumId);
+      const ttopaliativos = await this.ttopaliativosService.buscarPorPaciente(V6NumId);
+      const ttoqt = await this.ttoqtService.buscarPorPaciente(V6NumId);
+      const ttort = await this.ttortService.buscarPorPaciente(V6NumId);
+      const ttotrasplante = await this.ttotrasplanteService.buscarPorPaciente({ pacienteId: V6NumId });
+
+      if (!paciente && !diagnosticos?.length && !antecedentes?.length) {
+        return { ok: false, mensaje: 'No se encontraron registros para este paciente.' };
+      }
+
+      return {
+        ok: true,
+        paciente,
+        diagnosticos,
+        antecedentes,
+        ttocxreconstructiva,
+        ttopaliativos,
+        ttoqt,
+        ttort,
+        ttotrasplante,
+      };
+    } catch (err) {
+      console.error('❌ Error en consultaGeneral:', err.message);
+      throw new InternalServerErrorException('Error realizando la consulta general.');
+    }
   }
 }
