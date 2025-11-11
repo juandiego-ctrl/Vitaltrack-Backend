@@ -4,7 +4,7 @@ import { PacienteController } from './paciente.controller';
 import { PacienteService } from './paciente.service';
 import { PacienteSchema } from './paciente.modelo';
 
-// Módulos de servicios relacionados (usar nombres exactos de exportación)
+// Módulos de servicios relacionados
 import { diagnosticoModule } from '../diagnostico/diagnostico.module';
 import { AntecedentesModule } from '../antecedentes/antecedentes.module';
 import { ArchivospacientesModule } from '../archivospacientes/archivospacientes.module';
@@ -30,6 +30,9 @@ import { ttotrasplanteModule } from '../ttotrasplante/ttotrasplante.module';
   ],
   controllers: [PacienteController],
   providers: [PacienteService],
-  exports: [PacienteService],
+  exports: [
+    PacienteService,
+    MongooseModule, // ✅ Cambio: Agregar esta línea
+  ],
 })
 export class PacienteModule {}
