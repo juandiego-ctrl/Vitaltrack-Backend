@@ -127,14 +127,12 @@ export class ExcelarchivoService {
     return {
       ok: true,
       paciente: await this.pacienteService.buscarPorPaciente({ pacienteId: V6NumId }),
-      diagnosticos: await this.diagnosticoService.buscarPorPaciente({ pacienteId: V6NumId }),
-      antecedentes: await this.antecedentesService.buscarPorPaciente({ pacienteId: V6NumId }),
-      archivos: await this.archivospacientesService.buscarPorPaciente(V6NumId),
-      ttocx: await this.ttocxService.buscarPorPaciente(V6NumId),
-      ttocxreconstructiva: await this.ttocxreconstructivaService.buscarPorPaciente({ pacienteId: V6NumId }),
-      ttopaliativos: await this.ttopaliativosService.buscarPorPaciente({ pacienteId: V6NumId }),
-      ttoqt: await this.ttoqtService.buscarPorPaciente({ pacienteId: V6NumId }),
-      ttort: await this.ttortService.buscarPorPaciente({ pacienteId: V6NumId }),
+      diagnosticos: await this.diagnosticoService.buscarPorPaciente(V6NumId),
+      antecedentes: await this.antecedentesService.buscarPorPaciente(V6NumId),
+      ttocxreconstructiva: await this.ttocxreconstructivaService.buscarPorPaciente(V6NumId),
+      ttopaliativos: await this.ttopaliativosService.buscarPorPaciente(V6NumId),
+      ttoqt: await this.ttoqtService.buscarPorPaciente(V6NumId),
+      ttort: await this.ttortService.buscarPorPaciente(V6NumId),
       ttotrasplante: await this.ttotrasplanteService.buscarPorPaciente({ pacienteId: V6NumId }),
     };
   }
