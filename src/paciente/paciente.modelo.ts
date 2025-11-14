@@ -8,7 +8,7 @@ export const PacienteSchema=new mongoose.Schema(
         V3PrimerApe: String,
         V4SegundoApe: String,
         V5TipoID: String,
-        V6NumId: { type: String, required: true },
+        V6NumID: { type: String, required: true },
         V7FecNac: Date,
         V8Sexo: String,
         V9Ocup: String,
@@ -30,7 +30,7 @@ export interface IPaciente extends mongoose.Document{
     V3PrimerApe: string
     V4SegundoApe: string;
     V5TipoID: string;
-    V6NumId: string;
+    V6NumID: string;
     V7FecNac: Date;
     V8Sexo: string;
     V9Ocup: string;

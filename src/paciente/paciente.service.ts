@@ -42,9 +42,9 @@ export class PacienteService {
   }
 
   // Buscar paciente por cédula
-  async buscarPorCedula(cedula: string): Promise<IPaciente | null> {
-    return await this.pacienteModel.findOne({ V6NumId: cedula }).exec();
-  }
+async buscarPorCedula(cedula: string): Promise<IPaciente | null> {
+  return await this.pacienteModel.findOne({ V6NumID: cedula }).exec();  // Cambia 'Id' a 'ID'
+}
 
   // Buscar todos los pacientes (con paginación)
   async buscarTodos(page: number = 1, limit: number = 10): Promise<IPaciente[]> {
@@ -102,7 +102,7 @@ export class PacienteService {
     const paciente = await this.buscarPorCedula(cedula);
     if (!paciente) return { ok: false, mensaje: 'Paciente no encontrado' };
 
-    const id = paciente.V6NumId;
+    const id = paciente.V6NumID;
 
     return {
       ok: true,
@@ -135,7 +135,7 @@ export class PacienteService {
 
     if (!paciente) return { ok: false, mensaje: 'No se pudo guardar el paciente' };
 
-    const cedula = paciente.V6NumId;
+    const cedula = paciente.V6NumID;
 
     // Guardar datos relacionados
     if (data.diagnosticos?.length) {
