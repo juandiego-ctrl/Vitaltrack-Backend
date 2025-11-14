@@ -21,7 +21,6 @@ export class pacienteDto {
 
 export class CreateManualDto {
   paciente: pacienteDto;
-
   diagnosticos?: any[];
   antecedentes?: any[];
   archivos?: any[];
