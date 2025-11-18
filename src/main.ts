@@ -4,10 +4,28 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 🔒 Configuración CORS (permite que tu frontend en Vercel acceda)
+  // 🛠 Middleware manual para arreglar CORS en Render
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
+    );
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    // ⚠ Render falla si no se responde manualmente el OPTIONS
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+
+    next();
+  });
+
+  // 🔒 CORS estándar de Nest
   app.enableCors({
-    origin: '*', // puedes reemplazar '*' por tu dominio de frontend si quieres más seguridad
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: "*",
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   });
 
@@ -15,4 +33,5 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`🚀 Server running on port ${port}`);
 }
+
 bootstrap();
