@@ -13,9 +13,9 @@ async function bootstrap() {
     );
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-    // ⚠ Render falla si no se responde manualmente el OPTIONS
+    // ⚠ Render necesita OPTIONS → 204 para que Chrome acepte PATCH
     if (req.method === "OPTIONS") {
-      return res.sendStatus(200);
+      return res.sendStatus(204);
     }
 
     next();
@@ -24,8 +24,8 @@ async function bootstrap() {
   // 🔒 CORS estándar de Nest
   app.enableCors({
     origin: "*",
-    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type, Authorization",
     credentials: true,
   });
 
