@@ -22,7 +22,7 @@ export class PacienteController {
   // ✅ Crear un paciente nuevo
   @Post()
   async crearPaciente(@Body() dto: pacienteDto) {
-    if (!dto.V6NumId) throw new BadRequestException('Debe proporcionar un número de ID válido.');
+    if (!dto.V6NumID) throw new BadRequestException('Debe proporcionar un número de ID válido.');
     try {
       const respuesta = await this.pacienteService.crearPaciente(dto);
       return { ok: true, data: respuesta };
