@@ -1,70 +1,47 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class MailerService {
   private readonly logger = new Logger(MailerService.name);
-  private transporter;
+  private resend: Resend;
 
   constructor() {
-    // Verificar que las variables de entorno existan
-    const mailUser = process.env.MAIL_USER;
-    const mailPass = process.env.MAIL_PASS;
-
-    if (!mailUser || !mailPass) {
-      this.logger.error('Variables de entorno MAIL_USER o MAIL_PASS no están configuradas');
-      throw new Error('Configuración de correo incompleta');
+    const apiKey = process.env.RESEND_API_KEY;
+    
+    if (!apiKey) {
+      this.logger.error('❌ RESEND_API_KEY no configurada');
+      throw new Error('Configuración de Resend incompleta');
     }
 
-    this.logger.log(`Configurando transporter para: ${mailUser}`);
-
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // true para puerto 465, false para 587
-      auth: {
-        user: mailUser,
-        pass: mailPass,
-      },
-      // Opciones adicionales para debugging
-      logger: false, // cambiar a true para ver logs de nodemailer
-      debug: false, // cambiar a true para ver detalles de conexión
-    });
-
-    // Verificar la conexión al iniciar
-    this.verificarConexion();
+    this.resend = new Resend(apiKey);
+    this.logger.log('✅ Resend configurado correctamente');
   }
 
-  private async verificarConexion() {
-    try {
-      await this.transporter.verify();
-      this.logger.log('Conexión SMTP verificada exitosamente');
-    } catch (error) {
-      this.logger.error('Error al verificar conexión SMTP:', error.message);
-    }
-  }
-
-  async enviarCorreo({ to, subject, text, html }: {
+  async enviarCorreo({ to, subject, html }: {
     to: string;
     subject: string;
-    text?: string;
-    html?: string;
+    html: string;
   }) {
     try {
-      this.logger.log(`Enviando correo a: ${to}`);
+      this.logger.log(`📧 Enviando correo a: ${to}`);
       
-      const info = await this.transporter.sendMail({
-        from: `"VitalTrack" <${process.env.MAIL_USER}>`,
+      const { data, error } = await this.resend.emails.send({
+        from: 'VitalTrack <onboarding@resend.dev>', // Email por defecto de Resend
         to,
         subject,
-        text,
         html,
       });
 
-      this.logger.log(`Correo enviado exitosamente. MessageID: ${info.messageId}`);
-      return { success: true, messageId: info.messageId };
+      if (error) {
+        this.logger.error('❌ Error de Resend:', error);
+        throw error;
+      }
+      
+      this.logger.log(`✅ Correo enviado exitosamente. ID: ${data.id}`);
+      return { success: true, id: data.id };
     } catch (error) {
-      this.logger.error('Error al enviar correo:', error.message);
+      this.logger.error('❌ Error al enviar correo:', error);
       throw error;
     }
   }
@@ -78,7 +55,7 @@ export class MailerService {
 
     return this.enviarCorreo({
       to: datos.email,
-      subject: `Tratamiento para ${datos.nombrePaciente}`,
+      subject: `💊 Tratamiento para ${datos.nombrePaciente}`,
       html,
     });
   }
@@ -104,7 +81,7 @@ export class MailerService {
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
             <h1 style="color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px;">
-              Tratamiento Médico
+              💊 Tratamiento Médico - VitalTrack
             </h1>
             
             <div style="background-color: white; padding: 20px; border-radius: 5px; margin-top: 20px;">
@@ -127,12 +104,13 @@ export class MailerService {
               </table>
               
               <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107;">
-                <strong>Importante:</strong> Siga las indicaciones de su médico. No suspenda el tratamiento sin consultar.
+                <strong>⚠️ Importante:</strong> Siga las indicaciones de su médico. No suspenda el tratamiento sin consultar.
               </div>
             </div>
             
             <footer style="margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 12px;">
-              <p>Este es un mensaje automático, por favor no responder.</p>
+              <p>Este es un mensaje automático de VitalTrack.</p>
+              <p>Por favor no responder a este correo.</p>
             </footer>
           </div>
         </body>
