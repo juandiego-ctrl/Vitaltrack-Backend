@@ -32,7 +32,7 @@ export class MailerService {
       // Estructura del email según SDK actual
       const emailData = {
         to: [{ email: to }],
-        sender: { name: 'VitalTrack', email: 'noreply@brevo.com' },
+        sender: { name: 'VitalTrack', email: 'juandiego.cdp@gmail.com' },
         subject,
         htmlContent: html,
       };
