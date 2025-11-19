@@ -18,15 +18,35 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { AdministrativoModule } from './administrativo/administrativo.module';
 import { CitasModule } from './citas/citas.module';
+import { MedicamentosModule } from './medicamentos/medicamentos.module';
 
+import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRoot('mongodb+srv://Admin:Cac2025@cluster0.3sdxh.mongodb.net/vitaltrack'),
-    PacienteModule, diagnosticoModule, AntecedentesModule, ttoqtModule, ttocxModule, 
-    ttortModule, ttotrasplanteModule, ttocxreconstructivaModule, ttopaliativosModule
-    , ExcelarchivoModule, zipsoportesModule, ArchivospacientesModule, 
-    UsuarioModule,AuthModule, AdministrativoModule,CitasModule,
+    PacienteModule,
+    diagnosticoModule,
+    AntecedentesModule,
+    ttoqtModule,
+    ttocxModule,
+    ttortModule,
+    ttotrasplanteModule,
+    ttocxreconstructivaModule,
+    ttopaliativosModule,
+    ExcelarchivoModule,
+    zipsoportesModule,
+    ArchivospacientesModule,
+    UsuarioModule,
+    AuthModule,
+    AdministrativoModule,
+    CitasModule,
+    MedicamentosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
