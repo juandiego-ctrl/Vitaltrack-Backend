@@ -1,60 +1,71 @@
-import { Controller, Post, Body, Logger, Get } from '@nestjs/common';
+// MedicamentosController - Asegúrate de tener esta estructura
+
+import { Controller, Post, Body, Get, Param, Patch, Delete } from '@nestjs/common';
 import { MedicamentosService } from './medicamentos.service';
+import { MailerService } from './mailer/mailer.service'; // Ajusta la ruta según tu estructura
 
 @Controller('medicamentos')
 export class MedicamentosController {
-  private readonly logger = new Logger(MedicamentosController.name);
+  constructor(
+    private readonly medicamentosService: MedicamentosService,
+    private readonly mailerService: MailerService, // ← AGREGA ESTO
+  ) {}
 
-  constructor(private readonly service: MedicamentosService) {}
+  // Tus otros endpoints...
 
-  @Post()
-  async crear(@Body() body: any) {
-    this.logger.log('Creando medicamento:', JSON.stringify(body));
-    return this.service.crear(body);
+  @Post('test-email-simple')
+  async testEmailSimple(@Body() body: { email: string }) {
+    try {
+      console.log('📧 Intentando enviar correo de prueba a:', body.email);
+      
+      const resultado = await this.mailerService.enviarCorreo({
+        to: body.email,
+        subject: '✅ Prueba de correo VitalTrack',
+        html: `
+          <h1>¡Correo de prueba!</h1>
+          <p>Si recibes este correo, el servicio está funcionando correctamente.</p>
+          <p>Hora de envío: ${new Date().toLocaleString()}</p>
+        `,
+      });
+      
+      console.log('✅ Resultado:', resultado);
+      
+      return {
+        success: true,
+        message: 'Correo enviado correctamente',
+        resultado,
+      };
+    } catch (error) {
+      console.error('❌ Error al enviar correo:', error);
+      return {
+        success: false,
+        error: error.message,
+        stack: error.stack,
+      };
+    }
   }
 
   @Post('tratamiento')
-  async crearTratamiento(@Body() body: {
-    paciente: string;
-    correo: string;
-    telefono: string;
-    medicamentos: Array<{
-      medicamento: string;
-      frecuencia: string;
-      fechaInicio: string;
-      fechaFin: string;
-    }>;
-  }) {
-    this.logger.log('Recibiendo tratamiento:', JSON.stringify(body));
-    return this.service.crearTratamiento(body);
-  }
-
-  @Get('activos')
-  async obtenerActivos() {
-    return this.service.obtenerActivos();
-  }
-
-  // Endpoint de prueba
-  @Post('test-email')
-  async testEmail(@Body() body: { correo: string }) {
-    return this.service.crearTratamiento({
-      paciente: 'Paciente Prueba',
-      correo: body.correo,
-      telefono: '3001234567',
-      medicamentos: [
-        {
-          medicamento: 'Paracetamol 500mg',
-          frecuencia: 'Cada 8 horas',
-          fechaInicio: '2024-01-15',
-          fechaFin: '2024-01-20',
-        },
-        {
-          medicamento: 'Ibuprofeno 400mg',
-          frecuencia: 'Cada 12 horas',
-          fechaInicio: '2024-01-15',
-          fechaFin: '2024-01-18',
-        },
-      ],
-    });
+  async crearTratamiento(@Body() datos: any) {
+    try {
+      console.log('=== INICIANDO ENVÍO DE TRATAMIENTO ===');
+      console.log('Email destino:', datos.email);
+      console.log('Paciente:', datos.nombrePaciente);
+      
+      const resultado = await this.mailerService.enviarTratamiento(datos);
+      
+      console.log('=== RESULTADO ENVÍO ===');
+      console.log(JSON.stringify(resultado));
+      
+      return {
+        success: true,
+        message: 'Tratamiento enviado correctamente',
+        resultado,
+      };
+    } catch (error) {
+      console.error('=== ERROR EN ENVÍO ===');
+      console.error(error);
+      throw error;
+    }
   }
 }
