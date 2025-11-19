@@ -1,5 +1,5 @@
 // src/citas/dto/create-cita.dto.ts
-import { IsNotEmpty, IsString, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsString, IsDateString, IsEmail } from 'class-validator';
 
 export class CreateCitaDto {
   @IsNotEmpty()
@@ -12,7 +12,7 @@ export class CreateCitaDto {
 
   @IsNotEmpty()
   @IsDateString()
-  fecha: Date;
+  fecha: string; // ← mejor string (YYYY-MM-DD)
 
   @IsNotEmpty()
   @IsString()
@@ -23,8 +23,10 @@ export class CreateCitaDto {
   horaFin: string;
 
   @IsString()
-  motivo: string;
+  motivo?: string; // opcional
 
+  // ¡AQUÍ ESTÁ LA CORRECCIÓN!
+  @IsNotEmpty({ message: 'El correo del paciente es obligatorio' })
+  @IsEmail({}, { message: 'Debe ser un correo válido' })
   correoPaciente: string;
 }
-

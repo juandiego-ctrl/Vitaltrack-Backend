@@ -2,16 +2,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-
 export type CitaDocument = Cita & Document;
 
 @Schema({ timestamps: true })
 export class Cita {
   @Prop({ required: true })
-  pacienteId: string; // FK → pacientes
+  pacienteId: string;
 
   @Prop({ required: true })
-  medicoId: string; // FK → usuarios (rol médico)
+  medicoId: string;
 
   @Prop({ required: true })
   fecha: Date;
@@ -23,12 +22,14 @@ export class Cita {
   horaFin: string;
 
   @Prop({ default: 'pendiente' })
-  estado: string; // pendiente | confirmada | cancelada | atendida
+  estado: string;
 
-  correoPaciente: { type: String, required: true }
+  // AQUÍ ESTÁ LA CORRECCIÓN
+  @Prop({ required: true })  // ← ¡Falta el @Prop()!
+  correoPaciente: string;    // ← y sin llaves, solo el tipo
 
   @Prop()
-  motivo: string;
+  motivo?: string; // opcional
 }
 
 export const CitaSchema = SchemaFactory.createForClass(Cita);
