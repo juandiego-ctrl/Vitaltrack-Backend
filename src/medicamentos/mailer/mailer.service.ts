@@ -1,21 +1,24 @@
+// src/mailer/mailer.service.ts
 import { Injectable, Logger } from '@nestjs/common';
-import { Resend } from 'resend';
+import { TransactionalEmailsApi, TransactionalEmailsApiApiKeys } from '@getbrevo/brevo';
 
 @Injectable()
 export class MailerService {
   private readonly logger = new Logger(MailerService.name);
-  private resend: Resend;
+  private api: TransactionalEmailsApi;
 
   constructor() {
-    const apiKey = process.env.RESEND_API_KEY;
-    
+    const apiKey = process.env.BREVO_API_KEY;
+
     if (!apiKey) {
-      this.logger.error('❌ RESEND_API_KEY no configurada');
-      throw new Error('Configuración de Resend incompleta');
+      this.logger.error('❌ BREVO_API_KEY no configurada');
+      throw new Error('Configuración de Brevo incompleta');
     }
 
-    this.resend = new Resend(apiKey);
-    this.logger.log('✅ Resend configurado correctamente');
+    // Configuración correcta del SDK (2025)
+    this.api = new TransactionalEmailsApi();
+    this.api.setApiKey(TransactionalEmailsApiApiKeys.apiKey, apiKey);
+    this.logger.log('✅ Brevo configurado correctamente');
   }
 
   async enviarCorreo({ to, subject, html }: {
@@ -26,22 +29,24 @@ export class MailerService {
     try {
       this.logger.log(`📧 Enviando correo a: ${to}`);
       
-      const { data, error } = await this.resend.emails.send({
-        from: 'VitalTrack <onboarding@resend.dev>', // Email por defecto de Resend
-        to,
+      // Estructura del email según SDK actual
+      const emailData = {
+        to: [{ email: to }],
+        sender: { name: 'VitalTrack', email: 'noreply@brevo.com' },
         subject,
-        html,
-      });
+        htmlContent: html,
+      };
 
-      if (error) {
-        this.logger.error('❌ Error de Resend:', error);
-        throw error;
+      const { body } = await this.api.sendTransacEmail(emailData);
+
+      if (body.messageId) {
+        this.logger.log(`✅ Correo enviado exitosamente. ID: ${body.messageId}`);
+        return { success: true, id: body.messageId };
+      } else {
+        throw new Error('No se recibió ID de mensaje válido');
       }
-      
-      this.logger.log(`✅ Correo enviado exitosamente. ID: ${data.id}`);
-      return { success: true, id: data.id };
-    } catch (error) {
-      this.logger.error('❌ Error al enviar correo:', error);
+    } catch (error: any) {
+      this.logger.error('❌ Error de Brevo:', error?.body?.message || error.message);
       throw error;
     }
   }
