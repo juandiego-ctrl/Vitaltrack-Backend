@@ -3,6 +3,6 @@ import { MailerService } from './mailer.service';
 
 @Module({
   providers: [MailerService],
-  exports: [MailerService], // <- MUY IMPORTANTE para usarlo desde medicamentos.service
+  exports: [MailerService],
 })
 export class MailerModule {}

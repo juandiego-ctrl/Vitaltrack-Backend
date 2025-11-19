@@ -2,7 +2,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
 export class Medicamento extends Document {
   @Prop({ required: true })
   paciente: string;
@@ -23,11 +23,10 @@ export class Medicamento extends Document {
   telefono: string;
 
   @Prop({ required: true })
-  correo: string; // <-- AGREGADO
+  correo: string;
 
   @Prop({ default: true })
   activo: boolean;
 }
-
 
 export const MedicamentoSchema = SchemaFactory.createForClass(Medicamento);

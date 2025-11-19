@@ -3,7 +3,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MedicamentosController } from './medicamentos.controller';
 import { MedicamentosService } from './medicamentos.service';
 import { Medicamento, MedicamentoSchema } from './schema/medicamento.schema';
-import { MedicamentosCron } from './medicamentos.cron';
 import { MailerModule } from './mailer/mailer.module';
 
 @Module({
@@ -14,7 +13,6 @@ import { MailerModule } from './mailer/mailer.module';
     MailerModule,
   ],
   controllers: [MedicamentosController],
-  providers: [MedicamentosService, MedicamentosCron],
-  exports: [MedicamentosService],
+  providers: [MedicamentosService],
 })
 export class MedicamentosModule {}
