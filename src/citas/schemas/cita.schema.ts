@@ -2,6 +2,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
+
 export type CitaDocument = Cita & Document;
 
 @Schema({ timestamps: true })
@@ -23,6 +24,8 @@ export class Cita {
 
   @Prop({ default: 'pendiente' })
   estado: string; // pendiente | confirmada | cancelada | atendida
+
+  correoPaciente: { type: String, required: true }
 
   @Prop()
   motivo: string;

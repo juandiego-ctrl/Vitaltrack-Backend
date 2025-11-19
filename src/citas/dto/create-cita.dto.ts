@@ -24,4 +24,7 @@ export class CreateCitaDto {
 
   @IsString()
   motivo: string;
+
+  correoPaciente: string;
 }
+
