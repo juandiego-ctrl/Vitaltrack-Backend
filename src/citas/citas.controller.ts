@@ -1,15 +1,24 @@
 // src/citas/citas.controller.ts
-import { Controller, Get, Post, Body, Param, Patch, Delete, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  Put,
+} from '@nestjs/common';
 import { CitasService } from './citas.service';
 import { CreateCitaDto } from './dto/create-cita.dto';
 import { UpdateCitaDto } from './dto/update-cita.dto';
-import { MailerService } from '../medicamentos/mailer/mailer.service'; // ← Ajusta la ruta si tu mailer está en otro lado
+import { MailerService } from '../medicamentos/mailer/mailer.service'; // ← Ruta correcta si tu mailer está ahí
 
 @Controller('citas')
 export class CitasController {
   constructor(
     private readonly citasService: CitasService,
-    private readonly mailerService: MailerService, // ← Inyectamos el MailerService
+    private readonly mailerService: MailerService, // ← Inyectado correctamente
   ) {}
 
   @Post()
@@ -42,21 +51,25 @@ export class CitasController {
     return this.citasService.remove(id);
   }
 
-  // NUEVO ENDPOINT: Enviar recordatorio de cita por email
+  // RECORDATORIO DE CITA POR EMAIL
   @Post('recordatorio')
-  async enviarRecordatorio(@Body() datos: {
-    paciente: string;
-    medico: string;
-    fecha: string;    // formato YYYY-MM-DD
-    hora: string;     // formato HH:mm
-    correo: string;
-  }) {
+  async enviarRecordatorio(
+    @Body()
+    datos: {
+      paciente: string;
+      medico: string;
+      fecha: string; // formato YYYY-MM-DD
+      hora: string; // formato HH:mm
+      correo: string;
+    },
+  ) {
     const fechaBonita = new Date(datos.fecha).toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    }).replace(/^\w/, c => c.toUpperCase());
+    })
+      .replace(/^\w/, (c) => c.toUpperCase());
 
     const html = `
       <!DOCTYPE html>
@@ -106,9 +119,13 @@ export class CitasController {
       });
 
       return { success: true, message: 'Recordatorio de cita enviado correctamente' };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error enviando recordatorio de cita:', error);
-      return { success: false, message: 'Error al enviar el correo', error: error.message };
+      return {
+        success: false,
+        message: 'Error al enviar el correo',
+        error: error.message || error,
+      };
     }
   }
 }
