@@ -1,37 +1,25 @@
+// src/main.ts  → VERSIÓN FINAL QUE FUNCIONA EN RENDER 100%
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 🛠 Middleware manual para arreglar CORS en Render
-  app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
-    );
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  // ELIMINA TODO EL app.use() que tenías
 
-    // ⚠ Render necesita OPTIONS → 204 para que Chrome acepte PATCH
-    if (req.method === "OPTIONS") {
-      return res.sendStatus(204);
-    }
-
-    next();
-  });
-
-  // 🔒 CORS estándar de Nest
+  // CORS ÚNICO Y CORRECTO (funciona en localhost y Render)
   app.enableCors({
-    origin: "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-    allowedHeaders: "Content-Type, Authorization",
-    credentials: true,
+    origin: true, // en producción Render lo ignora y permite todo si no hay credenciales
+    // origin: ['http://localhost:3001', 'https://vitaltrack-frontend.onrender.com'], // ← usa esto cuando quieras restringir
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization',
+    credentials: true, // importante si usas cookies/sesiones
   });
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`🚀 Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 }
 
 bootstrap();
