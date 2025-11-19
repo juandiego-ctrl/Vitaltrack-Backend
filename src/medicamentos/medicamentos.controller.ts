@@ -1,17 +1,32 @@
-// MedicamentosController - Asegúrate de tener esta estructura
-
 import { Controller, Post, Body, Get, Param, Patch, Delete } from '@nestjs/common';
 import { MedicamentosService } from './medicamentos.service';
-import { MailerService } from './mailer/mailer.service'; // Ajusta la ruta según tu estructura
+import { MailerService } from './mailer/mailer.service';
 
 @Controller('medicamentos')
 export class MedicamentosController {
   constructor(
     private readonly medicamentosService: MedicamentosService,
-    private readonly mailerService: MailerService, // ← AGREGA ESTO
+    private readonly mailerService: MailerService,
   ) {}
 
-  // Tus otros endpoints...
+  // ⬇️ AGREGA ESTE ENDPOINT PRINCIPAL
+  @Post()
+  async crearMedicamento(@Body() body: any) {
+    try {
+      console.log('📦 Datos recibidos:', body);
+      
+      const resultado = await this.medicamentosService.crear(body);
+      
+      return {
+        success: true,
+        message: 'Medicamento guardado y email enviado',
+        data: resultado,
+      };
+    } catch (error) {
+      console.error('❌ Error:', error);
+      throw error;
+    }
+  }
 
   @Post('test-email-simple')
   async testEmailSimple(@Body() body: { email: string }) {
@@ -67,5 +82,11 @@ export class MedicamentosController {
       console.error(error);
       throw error;
     }
+  }
+
+  // Opcional: obtener medicamentos activos
+  @Get('activos')
+  async obtenerActivos() {
+    return this.medicamentosService.obtenerActivos();
   }
 }
