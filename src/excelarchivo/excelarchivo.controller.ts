@@ -1,5 +1,3 @@
-// excelarchivo.controller.ts → VERSIÓN FINAL OFICIAL (para tu sistema real)
-
 import {
   Controller,
   Post,
@@ -9,7 +7,6 @@ import {
   UseInterceptors,
   BadRequestException,
   Query,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExcelarchivoService } from './excelarchivo.service';
@@ -18,9 +15,7 @@ import { ExcelarchivoService } from './excelarchivo.service';
 export class ExcelarchivoController {
   constructor(private readonly excelarchivoService: ExcelarchivoService) {}
 
-  // ================================================
-  // 1. CARGUE MASIVO DE PACIENTES (TITULAR + ACOMPAÑANTES)
-  // ================================================
+  // 1. CARGUE MASIVO
   @Post('cargar-pacientes/:V6NumID')
   @UseInterceptors(FileInterceptor('file'))
   async cargarPacientesPorTitular(
@@ -35,32 +30,20 @@ export class ExcelarchivoController {
 
     return {
       ok: true,
-      mensaje: `Cargue exitoso. ${resultado.totalInsertados} pacientes asociados a la cédula ${V6NumID}`,
+      mensaje: `Cargue exitoso. ${resultado.insertados} pacientes asociados a la cédula ${V6NumID}`,
       cedulaTitular: V6NumID,
       detalles: resultado,
     };
   }
 
-  // ================================================
-  // 2. CONSULTA COMPLETA DEL EXPEDIENTE POR CÉDULA
-  // ================================================
+  // 2. EXPEDIENTE COMPLETO
   @Get('expediente/:V6NumID')
   async obtenerExpedienteCompleto(@Param('V6NumID') V6NumID: string) {
     if (!V6NumID) throw new BadRequestException('Cédula requerida');
-
-    const expediente = await this.excelarchivoService.obtenerExpedienteCompleto(V6NumID);
-
-    return {
-      ok: true,
-      cedula: V6NumID,
-      totalRegistros: Object.values(expediente).flat().length,
-      expediente,
-    };
+    return await this.excelarchivoService.obtenerExpedienteCompleto(V6NumID);
   }
 
-  // ================================================
-  // 3. LISTA DE TODOS LOS PACIENTES (para admin)
-  // ================================================
+  // 3. LISTA TODOS (admin)
   @Get('todos')
   async listarTodos(
     @Query('page') page = 1,
@@ -72,6 +55,27 @@ export class ExcelarchivoController {
     );
     return {
       ok: true,
+      page,
+      limit,
+      total: pacientes.length,
+      pacientes,
+    };
+  }
+
+  // 4. CONSULTA GENERAL (para frontend existente) ← NUEVA RUTA
+  @Get('consulta-general')
+  async consultaGeneral(
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    const pacientes = await this.excelarchivoService.consultaTodosLosPacientes(
+      Number(page),
+      Number(limit),
+    );
+    
+    return {
+      ok: true,
+      mensaje: 'Consulta general exitosa',
       page,
       limit,
       total: pacientes.length,
