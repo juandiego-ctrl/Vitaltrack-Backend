@@ -69,8 +69,13 @@ export class PacienteService {
 
   // Actualizar paciente
   async actualizarPaciente(cedula: string, dto: pacienteDto): Promise<IPaciente | null> {
+    // Convertimos a número si es posible, porque en la DB está como number
+    const query = /^\d+$/.test(cedula) 
+      ? { V6NumID: Number(cedula) }  // ← la mayoría de tus pacientes tienen número
+      : { V6NumID: cedula };         // ← por si acaso alguno está como string
+
     return await this.pacienteModel
-      .findOneAndUpdate({ V6NumID: cedula }, dto, { new: true })
+      .findOneAndUpdate(query, dto, { new: true })
       .exec();
   }
 
