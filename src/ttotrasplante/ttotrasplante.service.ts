@@ -38,22 +38,41 @@ export class TtotrasplanteService {
   }
 
   // ✅ Método para cargue masivo desde Excel
-  async guardarDesdeArray(datos: any[]): Promise<void> {
-    if (!Array.isArray(datos) || datos.length === 0) return;
+  async guardarDesdeArray(
+    lista: ttotrasplanteDto[],
+  ): Promise<{ accion: string; registro?: ITtotrasplante; error?: string }[]> {
+    const resultados: { accion: string; registro?: ITtotrasplante; error?: string }[] = [];
 
-    const operaciones = datos.map(async (item) => {
-      if (!item.pacienteId) return;
+    for (const item of lista) {
+      try {
+        const existe = await this.ttotrasplanteModel.findOne({
+          pacienteId: item.pacienteId,
+          V106RecibioTrasplanteCM: item.V106RecibioTrasplanteCM, // Campo identificador
+        }).exec();
 
-      const existe = await this.ttotrasplanteModel.findOne({ pacienteId: item.pacienteId }).exec();
-
-      if (existe) {
-        await this.ttotrasplanteModel.updateOne({ _id: existe._id }, item).exec();
-      } else {
-        const nuevo = new this.ttotrasplanteModel(item);
-        await nuevo.save();
+        if (existe) {
+          // 🔄 Actualizar si ya existe
+          const actualizado = await this.ttotrasplanteModel.findByIdAndUpdate(
+            existe._id,
+            item,
+            { new: true }
+          ).exec();
+          if (actualizado) {
+            resultados.push({ accion: 'actualizado', registro: actualizado });
+          } else {
+            resultados.push({ accion: 'error', error: 'Error al actualizar registro' });
+          }
+        } else {
+          // 🆕 Crear nuevo registro
+          const nuevo = new this.ttotrasplanteModel(item);
+          const guardado = await nuevo.save();
+          resultados.push({ accion: 'creado', registro: guardado });
+        }
+      } catch (error: any) {
+        resultados.push({ accion: 'error', error: error.message });
       }
-    });
+    }
 
-    await Promise.all(operaciones);
+    return resultados;
   }
 }

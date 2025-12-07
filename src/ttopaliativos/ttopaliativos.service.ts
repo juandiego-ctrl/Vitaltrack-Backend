@@ -47,29 +47,42 @@ export class TtopaliativosService {
   }
 
   // ✅ Guardar desde array para cargue masivo
-  async guardarDesdeArray(datos: any[]): Promise<void> {
-    if (!Array.isArray(datos) || datos.length === 0) return;
+  async guardarDesdeArray(
+    lista: ttopaliativosDto[],
+  ): Promise<{ accion: string; registro?: ITtopaliativos; error?: string }[]> {
+    const resultados: { accion: string; registro?: ITtopaliativos; error?: string }[] = [];
 
-    const operaciones = datos.map(async (item) => {
-      // Validar que el registro tenga el paciente asociado
-      if (!item.pacienteId) return;
+    for (const item of lista) {
+      try {
+        // Buscar si ya existe un registro de ttopaliativos para este paciente
+        const existe = await this.ttopaliativosModel.findOne({
+          pacienteId: item.pacienteId,
+          V114RecibioCuidadoPaliativo: item.V114RecibioCuidadoPaliativo, // Campo identificador
+        }).exec();
 
-      // Buscar si ya existe un registro de ttopaliativos para este paciente
-      const existe = await this.ttopaliativosModel.findOne({ pacienteId: item.pacienteId }).exec();
-
-      if (existe) {
-        // 🔄 Actualizar si ya existe
-        await this.ttopaliativosModel.updateOne(
-          { _id: existe._id },
-          { $set: item }
-        ).exec();
-      } else {
-        // 🆕 Crear nuevo registro
-        const nuevo = new this.ttopaliativosModel(item);
-        await nuevo.save();
+        if (existe) {
+          // 🔄 Actualizar si ya existe
+          const actualizado = await this.ttopaliativosModel.findByIdAndUpdate(
+            existe._id,
+            item,
+            { new: true }
+          ).exec();
+          if (actualizado) {
+            resultados.push({ accion: 'actualizado', registro: actualizado });
+          } else {
+            resultados.push({ accion: 'error', error: 'Error al actualizar registro' });
+          }
+        } else {
+          // 🆕 Crear nuevo registro
+          const nuevo = new this.ttopaliativosModel(item);
+          const guardado = await nuevo.save();
+          resultados.push({ accion: 'creado', registro: guardado });
+        }
+      } catch (error: any) {
+        resultados.push({ accion: 'error', error: error.message });
       }
-    });
+    }
 
-    await Promise.all(operaciones);
+    return resultados;
   }
 }

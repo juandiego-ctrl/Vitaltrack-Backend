@@ -44,31 +44,42 @@ export class TtoqtService {
   }
 
   // ✅ Guardar desde un arreglo (para cargue Excel)
-  async guardarDesdeArray(datos: any[]): Promise<void> {
-    if (!Array.isArray(datos) || datos.length === 0) return;
+  async guardarDesdeArray(
+    lista: ttoqtDto[],
+  ): Promise<{ accion: string; registro?: ITtoqt; error?: string }[]> {
+    const resultados: { accion: string; registro?: ITtoqt; error?: string }[] = [];
 
-    const operaciones = datos.map(async (item) => {
-      if (!item.pacienteId) return;
+    for (const item of lista) {
+      try {
+        // 🔍 Buscar si ya existe un registro del tratamiento para este paciente
+        const existe = await this.ttoqtModel.findOne({
+          pacienteId: item.pacienteId,
+          V45RecibioQuimio: item.V45RecibioQuimio, // Campo identificador
+        }).exec();
 
-      // 🔍 Buscar si ya existe un registro del tratamiento para este paciente
-      const existe = await this.ttoqtModel.findOne({
-        pacienteId: item.pacienteId,
-        V86RecibioQT: item.V86RecibioQT, // ajusta si tu campo identificador del tratamiento es distinto
-      }).exec();
-
-      if (existe) {
-        // 🔄 Si existe, actualiza
-        await this.ttoqtModel.updateOne(
-          { _id: existe._id },
-          { $set: item }
-        ).exec();
-      } else {
-        // 🆕 Si no existe, crea nuevo
-        const nuevo = new this.ttoqtModel(item);
-        await nuevo.save();
+        if (existe) {
+          // 🔄 Si existe, actualiza
+          const actualizado = await this.ttoqtModel.findByIdAndUpdate(
+            existe._id,
+            item,
+            { new: true }
+          ).exec();
+          if (actualizado) {
+            resultados.push({ accion: 'actualizado', registro: actualizado });
+          } else {
+            resultados.push({ accion: 'error', error: 'Error al actualizar registro' });
+          }
+        } else {
+          // 🆕 Si no existe, crea nuevo
+          const nuevo = new this.ttoqtModel(item);
+          const guardado = await nuevo.save();
+          resultados.push({ accion: 'creado', registro: guardado });
+        }
+      } catch (error: any) {
+        resultados.push({ accion: 'error', error: error.message });
       }
-    });
+    }
 
-    await Promise.all(operaciones);
+    return resultados;
   }
 }

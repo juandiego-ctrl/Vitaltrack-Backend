@@ -315,9 +315,8 @@ export class ExcelarchivoService {
             // Add other surgery fields as needed
           };
 
-          // TODO: Add guardarDesdeArray to TtoqtService
-          // const cirugiaResult = await this.ttoqtService.guardarDesdeArray([cirugiaData]);
-          // resultadosTotales.tratamientos.cirugia += cirugiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          const cirugiaResult = await this.ttoqtService.guardarDesdeArray([cirugiaData]);
+          resultadosTotales.tratamientos.cirugia += cirugiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
         }
 
         // 6. RADIOTERAPIA (ttort)
@@ -357,13 +356,12 @@ export class ExcelarchivoService {
             V106RecibioTrasplanteCM: row[118] ? String(row[118]).trim() : '',
             V107TipoTrasplanteCM: row[119] ? String(row[119]).trim() : '',
             V108UbicTempTrasplanteCM: row[120] ? String(row[120]).trim() : '',
-            V109FecTrasplanteCM: row[121] instanceof Date ? row[121] : row[121] ? new Date(row[121]) : undefined,
+            V109FecTrasplanteCM: parseDate(row[121]) || null,
             V110CodIPSTrasplanteCM: row[122] ? String(row[122]).trim() : '',
           };
 
-          // TODO: Add guardarDesdeArray to TtotrasplanteService
-          // const trasplanteResult = await this.ttotrasplanteService.guardarDesdeArray([trasplanteData]);
-          // resultadosTotales.tratamientos.trasplante += trasplanteResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          const trasplanteResult = await this.ttotrasplanteService.guardarDesdeArray([trasplanteData]);
+          resultadosTotales.tratamientos.trasplante += trasplanteResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
         }
 
         // 8. CIRUGÍA RECONSTRUCTIVA (ttocxreconstructiva)
@@ -390,21 +388,20 @@ export class ExcelarchivoService {
             V114_4CP_MedGeneral: row[130] ? String(row[130]).trim() : '',
             V114_5CP_TrabajoSocial: row[131] ? String(row[131]).trim() : '',
             V114_6CP_OtroProfSalud: row[132] ? String(row[132]).trim() : '',
-            V115FecPrimConsCP: row[133] instanceof Date ? row[133] : row[133] ? new Date(row[133]) : undefined,
+            V115FecPrimConsCP: parseDate(row[133]) || null,
             V116CodIPS_CP: row[134] ? String(row[134]).trim() : '',
             V117ValoradoPsiquiatria: row[135] ? String(row[135]).trim() : '',
-            V118FecPrimConsPsiq: row[136] instanceof Date ? row[136] : row[136] ? new Date(row[136]) : undefined,
+            V118FecPrimConsPsiq: parseDate(row[136]) || null,
             V119CodIPS_Psiq: row[137] ? String(row[137]).trim() : '',
             V120ValoradoNutricion: row[138] ? String(row[138]).trim() : '',
-            V121FecPrimConsNutr: row[139] instanceof Date ? row[139] : row[139] ? new Date(row[139]) : undefined,
+            V121FecPrimConsNutr: parseDate(row[139]) || null,
             V122CodIPS_Nutr: row[140] ? String(row[140]).trim() : '',
             V123TipoSoporteNutricional: row[141] ? String(row[141]).trim() : '',
             V124TerapiasComplementarias: row[142] ? String(row[142]).trim() : '',
           };
 
-          // TODO: Add guardarDesdeArray to TtopaliativosService
-          // const paliativosResult = await this.ttopaliativosService.guardarDesdeArray([paliativosData]);
-          // resultadosTotales.tratamientos.paliativos += paliativosResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          const paliativosResult = await this.ttopaliativosService.guardarDesdeArray([paliativosData]);
+          resultadosTotales.tratamientos.paliativos += paliativosResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
         }
 
       } catch (error: any) {
