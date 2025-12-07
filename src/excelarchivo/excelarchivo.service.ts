@@ -21,6 +21,42 @@ import { TtortService } from '../ttort/ttort.service';
 import { TtotrasplanteService } from '../ttotrasplante/ttotrasplante.service';
 
 // ← MANTENEMOS SOLO LO QUE EXISTE Y ESTÁ REGISTRADO
+
+// Función auxiliar para parsear fechas de forma segura
+function parseDate(value: any): Date | undefined {
+  if (!value) return undefined;
+  if (value instanceof Date && !isNaN(value.getTime())) return value;
+
+  // Si es un string que parece fecha ISO, intentar parsear
+  if (typeof value === 'string') {
+    // Intentar diferentes formatos
+    const parsed = new Date(value);
+    if (!isNaN(parsed.getTime())) return parsed;
+
+    // Si contiene solo números y guiones/puntos, podría ser DD/MM/YYYY o similar
+    if (/^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}$/.test(value)) {
+      const parts = value.split(/[\/\-\.]/);
+      if (parts.length === 3) {
+        // Asumir formato DD/MM/YYYY o MM/DD/YYYY (intentar DD/MM/YYYY primero)
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1; // Meses son 0-indexed
+        const year = parseInt(parts[2]);
+
+        // Si día > 12, probablemente es DD/MM/YYYY
+        // Si día <= 12, podría ser MM/DD/YYYY, pero asumiremos DD/MM/YYYY
+        const date = new Date(year, month, day);
+        if (!isNaN(date.getTime())) return date;
+      }
+    }
+  }
+
+  // Último intento: convertir a Date
+  const parsed = new Date(value);
+  if (!isNaN(parsed.getTime())) return parsed;
+
+  return undefined; // Retorna undefined si no es una fecha válida
+}
+
 @Injectable()
 export class ExcelarchivoService {
   constructor(
@@ -136,7 +172,7 @@ export class ExcelarchivoService {
           V4SegundoApe: row[3] ? String(row[3]).trim() : '',
           V5TipoID: row[4] ? String(row[4]).trim().toUpperCase() : 'CC',
           V6NumID: pacienteV6NumID, // V6NumID propio del paciente
-          V7FecNac: row[6] instanceof Date ? row[6] : row[6] ? new Date(row[6]) : undefined,
+          V7FecNac: parseDate(row[6]),
           V8Sexo: row[7] ? String(row[7]).trim().toUpperCase() : '',
           V9Ocup: row[8] ? String(row[8]).trim() : '',
           V10RegAfiliacion: row[9] ? String(row[9]).trim() : '',
@@ -145,8 +181,8 @@ export class ExcelarchivoService {
           V13GrupoPob: row[12] ? String(row[12]).trim() : '',
           V14MpioRes: row[13] ? String(row[13]).trim() : '',
           V15NumTel: row[14] ? String(row[14]).trim() : '',
-          V16FecAfiliacion: row[15] instanceof Date ? row[15] : row[15] ? new Date(row[15]) : undefined,
-          FechaIngreso: row[16] instanceof Date ? row[16] : row[16] ? new Date(row[16]) : undefined,
+          V16FecAfiliacion: parseDate(row[15]),
+          FechaIngreso: parseDate(row[16]),
         };
 
         // Guardar paciente
@@ -171,28 +207,28 @@ export class ExcelarchivoService {
             pacienteId: pacienteIdStr,
             V6NumID: pacienteV6NumID,
             V17CodCIE10: row[17] ? String(row[17]).trim() : '',
-            V18FecDiag: row[18] instanceof Date ? row[18] : row[18] ? new Date(row[18]) : null,
-            V19FecRemision: row[19] instanceof Date ? row[19] : row[19] ? new Date(row[19]) : null,
-            V20FecIngInst: row[20] instanceof Date ? row[20] : row[20] ? new Date(row[20]) : null,
+            V18FecDiag: parseDate(row[18]) || null,
+            V19FecRemision: parseDate(row[19]) || null,
+            V20FecIngInst: parseDate(row[20]) || null,
             V21TipoEstDiag: row[21] ? String(row[21]).trim() : '',
             V22MotNoHistop: row[22] ? String(row[22]).trim() : '',
-            V23FecRecMuestra: row[23] instanceof Date ? row[23] : row[23] ? new Date(row[23]) : null,
-            V24FecInfHistop: row[24] instanceof Date ? row[24] : row[24] ? new Date(row[24]) : null,
+            V23FecRecMuestra: parseDate(row[23]) || null,
+            V24FecInfHistop: parseDate(row[24]) || null,
             V25CodHabIPS: row[25] ? String(row[25]).trim() : '',
-            V26Fec1raCons: row[26] instanceof Date ? row[26] : row[26] ? new Date(row[26]) : null,
+            V26Fec1raCons: parseDate(row[26]) || null,
             V27HistTumor: row[27] ? String(row[27]).trim() : '',
             V28GradoDifTum: row[28] ? String(row[28]).trim() : '',
             V29EstadifTum: row[29] ? String(row[29]).trim() : '',
-            V30FecEstadif: row[30] instanceof Date ? row[30] : row[30] ? new Date(row[30]) : null,
+            V30FecEstadif: parseDate(row[30]) || null,
             V31PruebaHER2: row[31] ? String(row[31]).trim() : '',
-            V32FecPruebaHER2: row[32] instanceof Date ? row[32] : row[32] ? new Date(row[32]) : null,
+            V32FecPruebaHER2: parseDate(row[32]) || null,
             V33ResHER2: row[33] ? String(row[33]).trim() : '',
             V34EstadifDukes: row[34] ? String(row[34]).trim() : '',
-            V35FecEstDukes: row[35] instanceof Date ? row[35] : row[35] ? new Date(row[35]) : null,
+            V35FecEstDukes: parseDate(row[35]) || null,
             V36EstadifLinfMielo: row[36] ? String(row[36]).trim() : '',
             V37ClasGleason: row[37] ? String(row[37]).trim() : '',
             V38ClasRiesgoLL: row[38] ? String(row[38]).trim() : '',
-            V39FecClasRiesgo: row[39] instanceof Date ? row[39] : row[39] ? new Date(row[39]) : null,
+            V39FecClasRiesgo: parseDate(row[39]) || null,
             V40ObjTtoInicial: row[40] ? String(row[40]).trim() : '',
             V41IntervMed: row[41] ? String(row[41]).trim() : '',
             agrupador: row[42] ? String(row[42]).trim() : '',
@@ -208,7 +244,7 @@ export class ExcelarchivoService {
           const antecedenteData = {
             V6NumID: pacienteV6NumID,
             V42AntCancerPrim: row[44] ? String(row[44]).trim() : '',
-            V43FecDiagAnt: row[45] instanceof Date ? row[45] : row[45] ? new Date(row[45]) : new Date(),
+            V43FecDiagAnt: parseDate(row[45]) || new Date(),
             V44TipoCancerAnt: row[46] ? String(row[46]).trim() : '',
           };
 
@@ -224,7 +260,7 @@ export class ExcelarchivoService {
             V46NumFasesQuimio: row[48] ? Number(row[48]) : 0,
             V47NumCiclosQuimio: row[49] ? Number(row[49]) : 0,
             V48UbicTempTto: row[50] ? String(row[50]).trim() : '',
-            V49FecIniEsq1: row[51] instanceof Date ? row[51] : row[51] ? new Date(row[51]) : new Date(),
+            V49FecIniEsq1: parseDate(row[51]) || new Date(),
             V50NumIPSQuimio: row[52] ? Number(row[52]) : 0,
             V51CodIPSQuimio1: row[53] ? String(row[53]).trim() : '',
             V52CodIPSQuimio2: row[54] ? String(row[54]).trim() : '',
@@ -335,7 +371,7 @@ export class ExcelarchivoService {
           const reconstructivaData = {
             V6NumID: pacienteV6NumID,
             V111RecibioCirugiaReconst: row[123] ? String(row[123]).trim() : '',
-            V112FecCirugiaReconst: row[124] instanceof Date ? row[124] : row[124] ? new Date(row[124]) : new Date(),
+            V112FecCirugiaReconst: parseDate(row[124]) || new Date(),
             V113CodIPSCirugiaReconst: row[125] ? String(row[125]).trim() : '',
           };
 
