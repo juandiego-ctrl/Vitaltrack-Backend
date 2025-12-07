@@ -300,24 +300,12 @@ export class ExcelarchivoService {
           resultadosTotales.tratamientos.quimioterapia += quimioterapiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
         }
 
-        // 5. CIRUGÍA (ttoqt - assuming this is for surgery)
-        if (row[86] === 'Sí' || row[86] === 'SI' || row[86] === '1') { // V74RecibioCirugia
-          const cirugiaData = {
-            V6NumID: pacienteV6NumID,
-            V45RecibioQuimio: row[86] ? String(row[86]).trim() : '', // V74RecibioCirugia
-            V46NumFasesQuimio: row[87] ? Number(row[87]) : 0, // V75NumCirugias
-            V47NumCiclosQuimio: 0, // Not applicable
-            V48UbicTempTto: row[89] ? String(row[89]).trim() : '', // V79UbicTempCir1
-            V49FecIniEsq1: row[88] instanceof Date ? row[88] : row[88] ? new Date(row[88]) : undefined, // V76FecPrimCir
-            V50NumIPSQuimio: 0,
-            V51CodIPSQuimio1: row[90] ? String(row[90]).trim() : '', // V77CodIPSCir1
-            V52CodIPSQuimio2: row[92] ? String(row[92]).trim() : '', // V82CodIPSCir2
-            // Add other surgery fields as needed
-          };
-
-          const cirugiaResult = await this.ttoqtService.guardarDesdeArray([cirugiaData]);
-          resultadosTotales.tratamientos.cirugia += cirugiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
-        }
+        // 5. CIRUGÍA (ttoqt - pendiente de mapeo completo)
+        // TODO: Completar mapeo de todos los campos requeridos del DTO ttoqtDto
+        // if (row[86] === 'Sí' || row[86] === 'SI' || row[86] === '1') {
+        //   const cirugiaResult = await this.ttoqtService.guardarDesdeArray([cirugiaData]);
+        //   resultadosTotales.tratamientos.cirugia += cirugiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+        // }
 
         // 6. RADIOTERAPIA (ttort)
         if (row[98] === 'Sí' || row[98] === 'SI' || row[98] === '1') { // V86RecibioRadioterapia
