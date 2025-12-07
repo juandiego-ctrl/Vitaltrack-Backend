@@ -141,10 +141,12 @@ export class ExcelarchivoService {
 
   // CARGUE MASIVO COMPLETO → PROCESA TODOS LOS DATOS Y LOS DISTRIBUYE
   async procesarArchivoExcel(V6NumId: string, file: Express.Multer.File): Promise<any> {
+    console.log('🔍 Iniciando procesarArchivoExcel con V6NumId:', V6NumId);
     if (!file) throw new BadRequestException('No se subió ningún archivo');
     if (!V6NumId) throw new BadRequestException('Falta la cédula del titular');
 
     const workbook = XLSX.read(file.buffer, { type: 'buffer', cellDates: true });
+    console.log('📊 Workbook cargado, hojas:', workbook.SheetNames);
 
     // Procesar todas las hojas del workbook
     let allData: any[][] = [];
@@ -152,26 +154,32 @@ export class ExcelarchivoService {
       const sheetName = workbook.SheetNames[i];
       const sheet = workbook.Sheets[sheetName];
       const sheetData: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+      console.log(`📋 Hoja ${i}: ${sheetName}, filas: ${sheetData.length}`);
 
       if (sheetData && sheetData.length > 0) {
         if (i === 0) {
           // Primera hoja incluye headers
           allData = sheetData;
+          console.log('✅ Primera hoja concatenada, total filas:', allData.length);
         } else {
           // Hojas siguientes: omitir la primera fila si parece ser header duplicado
           const firstRow = sheetData[0];
           const isHeaderRow = firstRow && firstRow.length > 0 && typeof firstRow[0] === 'string' &&
                              (firstRow[0].toLowerCase().includes('primer') || firstRow[0].toLowerCase().includes('nombre'));
+          console.log(`🔍 Hoja ${i} primera fila parece header: ${isHeaderRow}`);
           if (isHeaderRow) {
             allData = allData.concat(sheetData.slice(1));
+            console.log('⏭️ Header omitido, filas agregadas:', sheetData.slice(1).length);
           } else {
             allData = allData.concat(sheetData);
+            console.log('➕ Filas agregadas sin omitir:', sheetData.length);
           }
         }
       }
     }
 
     const data = allData;
+    console.log('📊 Datos finales, total filas:', data.length);
 
     if (!data || data.length <= 1) {
       throw new BadRequestException('Excel vacío o sin datos');
@@ -185,13 +193,17 @@ export class ExcelarchivoService {
       errores: [] as { fila: number; error: string }[]
     };
 
+    console.log('🔄 Iniciando procesamiento de filas, total filas de datos:', data.length - 1);
     // Procesar fila por fila
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      try {
+     for (let i = 1; i < data.length; i++) {
+       const row = data[i];
+       console.log(`📝 Procesando fila ${i}, columnas: ${row.length}, V6NumID: ${row[5]}`);
+       try {
         // 1. CREAR/ACTUALIZAR PACIENTE
         const pacienteV6NumID = row[5] ? String(row[5]).trim() : null;
+        console.log(`👤 Fila ${i}: V6NumID = ${pacienteV6NumID}`);
         if (!pacienteV6NumID) {
+          console.log(`❌ Fila ${i}: V6NumID faltante, saltando`);
           resultadosTotales.errores.push({
             fila: i + 1,
             error: 'V6NumID del paciente no encontrado en columna F'
@@ -220,8 +232,11 @@ export class ExcelarchivoService {
         };
 
         // Guardar paciente
+        console.log(`💾 Guardando paciente: ${pacienteV6NumID}`);
         const pacienteGuardado = await this.pacienteService.guardarDesdeArray([pacienteData]);
+        console.log(`📊 Resultado paciente:`, pacienteGuardado);
         const pacientesCreados = pacienteGuardado.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+        console.log(`✅ Pacientes creados/actualizados: ${pacientesCreados}`);
         resultadosTotales.pacientes += pacientesCreados;
 
         // Si no se creó el paciente, agregar error
@@ -238,7 +253,9 @@ export class ExcelarchivoService {
         const pacienteIdStr = String(pacienteGuardado[0]?.paciente?._id || pacienteV6NumID);
 
         // 2. PROCESAR DIAGNÓSTICO (si tiene datos)
+        console.log(`🔍 Fila ${i}: V17=${row[17]}, V18=${row[18]}`);
         if (row[17] || row[18]) { // V17CodCIE10 o V18FecDiag
+          console.log(`🏥 Procesando diagnóstico para ${pacienteV6NumID}`);
           const diagnosticoData = {
             pacienteId: pacienteIdStr,
             V6NumID: pacienteV6NumID,
@@ -272,7 +289,10 @@ export class ExcelarchivoService {
           };
 
           const diagnosticoResult = await this.diagnosticoService.guardarDesdeArray([diagnosticoData]);
-          resultadosTotales.diagnosticos += diagnosticoResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          console.log(`📊 Resultado diagnóstico:`, diagnosticoResult);
+          const diagnosticosCreados = diagnosticoResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          console.log(`✅ Diagnósticos creados: ${diagnosticosCreados}`);
+          resultadosTotales.diagnosticos += diagnosticosCreados;
         }
 
         // 3. ANTECEDENTES (cáncer previo)
@@ -289,7 +309,9 @@ export class ExcelarchivoService {
         }
 
         // 4. TRATAMIENTOS - QUIMIOTERAPIA (ttocx)
-         if (normalizeString(row[47]) === 'si' || normalizeString(row[47]) === 'x' || row[47] === '1') { // V45RecibioQuimio
+        console.log(`💊 Fila ${i}: V45RecibioQuimio = ${row[47]}, normalized: ${normalizeString(row[47])}`);
+        if (normalizeString(row[47]) === 'si' || normalizeString(row[47]) === 'x' || row[47] === '1') { // V45RecibioQuimio
+          console.log(`🧪 Procesando quimioterapia para ${pacienteV6NumID}`);
           const quimioterapiaData = {
              pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
@@ -334,7 +356,10 @@ export class ExcelarchivoService {
           };
 
           const quimioterapiaResult = await this.ttocxService.guardarDesdeArray([quimioterapiaData]);
-          resultadosTotales.tratamientos.quimioterapia += quimioterapiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          console.log(`📊 Resultado quimioterapia:`, quimioterapiaResult);
+          const quimioCreados = quimioterapiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          console.log(`✅ Quimioterapias creadas: ${quimioCreados}`);
+          resultadosTotales.tratamientos.quimioterapia += quimioCreados;
         }
 
         // 5. CIRUGÍA (ttoqt - pendiente de mapeo completo)
@@ -441,12 +466,13 @@ export class ExcelarchivoService {
       }
     }
 
+    console.log('🏁 Procesamiento completo, resultados finales:', resultadosTotales);
     return {
-      ok: true,
-      mensaje: 'Procesamiento completo del Excel',
-      cedulaTitular: V6NumId,
-      resultados: resultadosTotales,
-    };
+       ok: true,
+       mensaje: 'Procesamiento completo del Excel',
+       cedulaTitular: V6NumId,
+       resultados: resultadosTotales,
+     };
   }
 
   // EXPEDIENTE COMPLETO → Consulta unificada por V6NumID

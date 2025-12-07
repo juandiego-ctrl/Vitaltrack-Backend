@@ -24,11 +24,11 @@ export class ExcelarchivoController {
     const resultado = await this.excelarchivoService.procesarArchivoExcelAutomatico(file);
 
     return {
-      ok: true,
-      mensaje: `Cargue exitoso. ${resultado.insertados} pacientes procesados`,
-      cedulaTitular: resultado.cedulaDetectada,
-      detalles: resultado,
-    };
+       ok: true,
+       mensaje: `Cargue exitoso. ${resultado.insertados} registros procesados`,
+       cedulaTitular: resultado.cedulaDetectada,
+       detalles: resultado,
+     };
   }
 
   // 1b. CARGUE MASIVO MANUAL (para compatibilidad)
