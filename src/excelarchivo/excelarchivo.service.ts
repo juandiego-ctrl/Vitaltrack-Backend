@@ -151,7 +151,18 @@ export class ExcelarchivoService {
 
         // Guardar paciente
         const pacienteGuardado = await this.pacienteService.guardarDesdeArray([pacienteData]);
-        resultadosTotales.pacientes += pacienteGuardado.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+        const pacientesCreados = pacienteGuardado.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+        resultadosTotales.pacientes += pacientesCreados;
+
+        // Si no se creó el paciente, agregar error
+        if (pacientesCreados === 0) {
+          const errorMsg = pacienteGuardado[0]?.error || 'Error desconocido al guardar paciente';
+          resultadosTotales.errores.push({
+            fila: i + 1,
+            error: `Paciente no guardado: ${errorMsg}`
+          });
+          continue; // No procesar tratamientos si el paciente falló
+        }
 
         // 2. PROCESAR DIAGNÓSTICO (si tiene datos)
         if (row[17] || row[18]) { // V17CodCIE10 o V18FecDiag
