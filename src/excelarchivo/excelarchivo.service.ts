@@ -22,6 +22,13 @@ import { TtotrasplanteService } from '../ttotrasplante/ttotrasplante.service';
 
 // ← MANTENEMOS SOLO LO QUE EXISTE Y ESTÁ REGISTRADO
 
+// Función auxiliar para normalizar strings (quitar acentos y convertir a minúsculas)
+function normalizeString(value: any): string {
+  if (!value) return '';
+  const str = String(value).trim().toLowerCase();
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remover acentos
+}
+
 // Función auxiliar para parsear fechas de forma segura
 function parseDate(value: any): Date | undefined {
   if (!value) return undefined;
@@ -92,6 +99,8 @@ export class ExcelarchivoService {
     if (!file) throw new BadRequestException('No se subió ningún archivo');
 
     const workbook = XLSX.read(file.buffer, { type: 'buffer', cellDates: true });
+
+    // Usar la primera hoja para detectar V6NumID
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
 
@@ -136,8 +145,33 @@ export class ExcelarchivoService {
     if (!V6NumId) throw new BadRequestException('Falta la cédula del titular');
 
     const workbook = XLSX.read(file.buffer, { type: 'buffer', cellDates: true });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+
+    // Procesar todas las hojas del workbook
+    let allData: any[][] = [];
+    for (let i = 0; i < workbook.SheetNames.length; i++) {
+      const sheetName = workbook.SheetNames[i];
+      const sheet = workbook.Sheets[sheetName];
+      const sheetData: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+
+      if (sheetData && sheetData.length > 0) {
+        if (i === 0) {
+          // Primera hoja incluye headers
+          allData = sheetData;
+        } else {
+          // Hojas siguientes: omitir la primera fila si parece ser header duplicado
+          const firstRow = sheetData[0];
+          const isHeaderRow = firstRow && firstRow.length > 0 && typeof firstRow[0] === 'string' &&
+                             (firstRow[0].toLowerCase().includes('primer') || firstRow[0].toLowerCase().includes('nombre'));
+          if (isHeaderRow) {
+            allData = allData.concat(sheetData.slice(1));
+          } else {
+            allData = allData.concat(sheetData);
+          }
+        }
+      }
+    }
+
+    const data = allData;
 
     if (!data || data.length <= 1) {
       throw new BadRequestException('Excel vacío o sin datos');
@@ -253,10 +287,10 @@ export class ExcelarchivoService {
         }
 
         // 4. TRATAMIENTOS - QUIMIOTERAPIA (ttocx)
-        if (row[47] === 'Sí' || row[47] === 'SI' || row[47] === '1') { // V45RecibioQuimio
+         if (normalizeString(row[47]) === 'si' || row[47] === '1') { // V45RecibioQuimio
           const quimioterapiaData = {
-            V6NumID: pacienteV6NumID,
-            V45RecibioQuimio: row[47] ? String(row[47]).trim() : '',
+             V6NumID: pacienteV6NumID,
+             V45RecibioQuimio: 'Sí',
             V46NumFasesQuimio: row[48] ? Number(row[48]) : 0,
             V47NumCiclosQuimio: row[49] ? Number(row[49]) : 0,
             V48UbicTempTto: row[50] ? String(row[50]).trim() : '',
@@ -301,17 +335,17 @@ export class ExcelarchivoService {
         }
 
         // 5. CIRUGÍA (ttoqt - pendiente de mapeo completo)
-        // TODO: Completar mapeo de todos los campos requeridos del DTO ttoqtDto
-        // if (row[86] === 'Sí' || row[86] === 'SI' || row[86] === '1') {
+         // TODO: Completar mapeo de todos los campos requeridos del DTO ttoqtDto
+         // if (normalizeString(row[86]) === 'si' || row[86] === '1') {
         //   const cirugiaResult = await this.ttoqtService.guardarDesdeArray([cirugiaData]);
         //   resultadosTotales.tratamientos.cirugia += cirugiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
         // }
 
         // 6. RADIOTERAPIA (ttort)
-        if (row[98] === 'Sí' || row[98] === 'SI' || row[98] === '1') { // V86RecibioRadioterapia
+         if (normalizeString(row[98]) === 'si' || row[98] === '1') { // V86RecibioRadioterapia
           const radioterapiaData = {
-            V6NumID: pacienteV6NumID,
-            V86RecibioRadioterapia: row[98] ? String(row[98]).trim() : '',
+             V6NumID: pacienteV6NumID,
+             V86RecibioRadioterapia: 'Sí',
             V87NumSesionesRadio: row[99] ? Number(row[99]) : 0,
             V88FecIniEsq1Radio: row[100] instanceof Date ? row[100] : row[100] ? new Date(row[100]) : undefined,
             V89UbicTempEsq1Radio: row[101] ? String(row[101]).trim() : '',
@@ -338,10 +372,10 @@ export class ExcelarchivoService {
         }
 
         // 7. TRASPLANTE (ttotrasplante)
-        if (row[118] === 'Sí' || row[118] === 'SI' || row[118] === '1') { // V106RecibioTrasplanteCM
+         if (normalizeString(row[118]) === 'si' || row[118] === '1') { // V106RecibioTrasplanteCM
           const trasplanteData = {
-            V6NumID: pacienteV6NumID,
-            V106RecibioTrasplanteCM: row[118] ? String(row[118]).trim() : '',
+             V6NumID: pacienteV6NumID,
+             V106RecibioTrasplanteCM: 'Sí',
             V107TipoTrasplanteCM: row[119] ? String(row[119]).trim() : '',
             V108UbicTempTrasplanteCM: row[120] ? String(row[120]).trim() : '',
             V109FecTrasplanteCM: parseDate(row[121]) || null,
@@ -353,10 +387,10 @@ export class ExcelarchivoService {
         }
 
         // 8. CIRUGÍA RECONSTRUCTIVA (ttocxreconstructiva)
-        if (row[123] === 'Sí' || row[123] === 'SI' || row[123] === '1') { // V111RecibioCirugiaReconst
+         if (normalizeString(row[123]) === 'si' || row[123] === '1') { // V111RecibioCirugiaReconst
           const reconstructivaData = {
-            V6NumID: pacienteV6NumID,
-            V111RecibioCirugiaReconst: row[123] ? String(row[123]).trim() : '',
+             V6NumID: pacienteV6NumID,
+             V111RecibioCirugiaReconst: 'Sí',
             V112FecCirugiaReconst: parseDate(row[124]) || new Date(),
             V113CodIPSCirugiaReconst: row[125] ? String(row[125]).trim() : '',
           };
@@ -366,10 +400,10 @@ export class ExcelarchivoService {
         }
 
         // 9. CUIDADOS PALIATIVOS (ttopaliativos)
-        if (row[126] === 'Sí' || row[126] === 'SI' || row[126] === '1') { // V114RecibioCuidadoPaliativo
+         if (normalizeString(row[126]) === 'si' || row[126] === '1') { // V114RecibioCuidadoPaliativo
           const paliativosData = {
-            V6NumID: pacienteV6NumID,
-            V114RecibioCuidadoPaliativo: row[126] ? String(row[126]).trim() : '',
+             V6NumID: pacienteV6NumID,
+             V114RecibioCuidadoPaliativo: 'Sí',
             V114_1CP_MedEspecialista: row[127] ? String(row[127]).trim() : '',
             V114_2CP_ProfSaludNoMed: row[128] ? String(row[128]).trim() : '',
             V114_3CP_MedOtraEspecialidad: row[129] ? String(row[129]).trim() : '',
@@ -488,8 +522,33 @@ export class ExcelarchivoService {
     if (!file) throw new BadRequestException('No se subió ningún archivo');
 
     const workbook = XLSX.read(file.buffer, { type: 'buffer', cellDates: true });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+
+    // Procesar todas las hojas del workbook
+    let allData: any[][] = [];
+    for (let i = 0; i < workbook.SheetNames.length; i++) {
+      const sheetName = workbook.SheetNames[i];
+      const sheet = workbook.Sheets[sheetName];
+      const sheetData: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+
+      if (sheetData && sheetData.length > 0) {
+        if (i === 0) {
+          // Primera hoja incluye headers
+          allData = sheetData;
+        } else {
+          // Hojas siguientes: omitir la primera fila si parece ser header duplicado
+          const firstRow = sheetData[0];
+          const isHeaderRow = firstRow && firstRow.length > 0 && typeof firstRow[0] === 'string' &&
+                             (firstRow[0].toLowerCase().includes('nombre') || firstRow[0].toLowerCase().includes('email'));
+          if (isHeaderRow) {
+            allData = allData.concat(sheetData.slice(1));
+          } else {
+            allData = allData.concat(sheetData);
+          }
+        }
+      }
+    }
+
+    const data = allData;
 
     if (!data || data.length <= 1) {
       throw new BadRequestException('Excel vacío o sin datos');
