@@ -234,9 +234,11 @@ export class ExcelarchivoService {
           continue; // No procesar tratamientos si el paciente falló
         }
 
+        // Definir pacienteId para relaciones
+        const pacienteIdStr = String(pacienteGuardado[0]?.paciente?._id || pacienteV6NumID);
+
         // 2. PROCESAR DIAGNÓSTICO (si tiene datos)
         if (row[17] || row[18]) { // V17CodCIE10 o V18FecDiag
-          const pacienteIdStr = String(pacienteGuardado[0]?.paciente?._id || pacienteV6NumID);
           const diagnosticoData = {
             pacienteId: pacienteIdStr,
             V6NumID: pacienteV6NumID,
@@ -287,8 +289,9 @@ export class ExcelarchivoService {
         }
 
         // 4. TRATAMIENTOS - QUIMIOTERAPIA (ttocx)
-         if (normalizeString(row[47]) === 'si' || row[47] === '1') { // V45RecibioQuimio
+         if (normalizeString(row[47]) === 'si' || normalizeString(row[47]) === 'x' || row[47] === '1') { // V45RecibioQuimio
           const quimioterapiaData = {
+             pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
              V45RecibioQuimio: 'Sí',
             V46NumFasesQuimio: row[48] ? Number(row[48]) : 0,
@@ -342,8 +345,9 @@ export class ExcelarchivoService {
         // }
 
         // 6. RADIOTERAPIA (ttort)
-         if (normalizeString(row[98]) === 'si' || row[98] === '1') { // V86RecibioRadioterapia
+         if (normalizeString(row[98]) === 'si' || normalizeString(row[98]) === 'x' || row[98] === '1') { // V86RecibioRadioterapia
           const radioterapiaData = {
+             pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
              V86RecibioRadioterapia: 'Sí',
             V87NumSesionesRadio: row[99] ? Number(row[99]) : 0,
@@ -372,8 +376,9 @@ export class ExcelarchivoService {
         }
 
         // 7. TRASPLANTE (ttotrasplante)
-         if (normalizeString(row[118]) === 'si' || row[118] === '1') { // V106RecibioTrasplanteCM
+         if (normalizeString(row[118]) === 'si' || normalizeString(row[118]) === 'x' || row[118] === '1') { // V106RecibioTrasplanteCM
           const trasplanteData = {
+             pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
              V106RecibioTrasplanteCM: 'Sí',
             V107TipoTrasplanteCM: row[119] ? String(row[119]).trim() : '',
@@ -387,8 +392,9 @@ export class ExcelarchivoService {
         }
 
         // 8. CIRUGÍA RECONSTRUCTIVA (ttocxreconstructiva)
-         if (normalizeString(row[123]) === 'si' || row[123] === '1') { // V111RecibioCirugiaReconst
+         if (normalizeString(row[123]) === 'si' || normalizeString(row[123]) === 'x' || row[123] === '1') { // V111RecibioCirugiaReconst
           const reconstructivaData = {
+             pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
              V111RecibioCirugiaReconst: 'Sí',
             V112FecCirugiaReconst: parseDate(row[124]) || new Date(),
@@ -400,8 +406,9 @@ export class ExcelarchivoService {
         }
 
         // 9. CUIDADOS PALIATIVOS (ttopaliativos)
-         if (normalizeString(row[126]) === 'si' || row[126] === '1') { // V114RecibioCuidadoPaliativo
+         if (normalizeString(row[126]) === 'si' || normalizeString(row[126]) === 'x' || row[126] === '1') { // V114RecibioCuidadoPaliativo
           const paliativosData = {
+             pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
              V114RecibioCuidadoPaliativo: 'Sí',
             V114_1CP_MedEspecialista: row[127] ? String(row[127]).trim() : '',
