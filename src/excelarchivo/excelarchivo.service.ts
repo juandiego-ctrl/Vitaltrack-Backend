@@ -71,12 +71,25 @@ export class ExcelarchivoService {
       throw new BadRequestException('No se pudo detectar V6NumID en el archivo Excel. Verifique que la columna F (posición 5) contenga el número de identificación.');
     }
 
-    console.log(`🔍 V6NumID detectado automáticamente: ${V6NumIdDetectado}`);
+    console.log(`🔍 V6NumID titular detectado automáticamente: ${V6NumIdDetectado}`);
 
     // Usar el método existente con el V6NumID detectado
     const resultado = await this.procesarArchivoExcel(V6NumIdDetectado, file);
+
+    // Calcular total de registros insertados/actualizados
+    const totalInsertados = resultado.resultados.pacientes +
+                          resultado.resultados.diagnosticos +
+                          resultado.resultados.antecedentes +
+                          resultado.resultados.tratamientos.quimioterapia +
+                          resultado.resultados.tratamientos.radioterapia +
+                          resultado.resultados.tratamientos.cirugia +
+                          resultado.resultados.tratamientos.trasplante +
+                          resultado.resultados.tratamientos.reconstructiva +
+                          resultado.resultados.tratamientos.paliativos;
+
     return {
       ...resultado,
+      insertados: totalInsertados,
       cedulaDetectada: V6NumIdDetectado
     };
   }
@@ -107,13 +120,22 @@ export class ExcelarchivoService {
       const row = data[i];
       try {
         // 1. CREAR/ACTUALIZAR PACIENTE
+        const pacienteV6NumID = row[5] ? String(row[5]).trim() : null;
+        if (!pacienteV6NumID) {
+          resultadosTotales.errores.push({
+            fila: i + 1,
+            error: 'V6NumID del paciente no encontrado en columna F'
+          });
+          continue; // Saltar esta fila
+        }
+
         const pacienteData = {
           V1PrimerNom: row[0] ? String(row[0]).trim() : '',
           V2SegundoNom: row[1] ? String(row[1]).trim() : '',
           V3PrimerApe: row[2] ? String(row[2]).trim() : '',
           V4SegundoApe: row[3] ? String(row[3]).trim() : '',
           V5TipoID: row[4] ? String(row[4]).trim().toUpperCase() : 'CC',
-          V6NumID: V6NumId,
+          V6NumID: pacienteV6NumID, // V6NumID propio del paciente
           V7FecNac: row[6] instanceof Date ? row[6] : row[6] ? new Date(row[6]) : undefined,
           V8Sexo: row[7] ? String(row[7]).trim().toUpperCase() : '',
           V9Ocup: row[8] ? String(row[8]).trim() : '',
@@ -133,10 +155,10 @@ export class ExcelarchivoService {
 
         // 2. PROCESAR DIAGNÓSTICO (si tiene datos)
         if (row[17] || row[18]) { // V17CodCIE10 o V18FecDiag
-          const pacienteIdStr = String(pacienteGuardado[0]?.paciente?._id || V6NumId);
+          const pacienteIdStr = String(pacienteGuardado[0]?.paciente?._id || pacienteV6NumID);
           const diagnosticoData = {
             pacienteId: pacienteIdStr,
-            V6NumID: V6NumId,
+            V6NumID: pacienteV6NumID,
             V17CodCIE10: row[17] ? String(row[17]).trim() : '',
             V18FecDiag: row[18] instanceof Date ? row[18] : row[18] ? new Date(row[18]) : null,
             V19FecRemision: row[19] instanceof Date ? row[19] : row[19] ? new Date(row[19]) : null,
@@ -173,7 +195,7 @@ export class ExcelarchivoService {
         // 3. ANTECEDENTES (cáncer previo)
         if (row[44] || row[45] || row[46]) { // V42, V43, V44
           const antecedenteData = {
-            V6NumID: V6NumId,
+            V6NumID: pacienteV6NumID,
             V42AntCancerPrim: row[44] ? String(row[44]).trim() : '',
             V43FecDiagAnt: row[45] instanceof Date ? row[45] : row[45] ? new Date(row[45]) : new Date(),
             V44TipoCancerAnt: row[46] ? String(row[46]).trim() : '',
@@ -186,7 +208,7 @@ export class ExcelarchivoService {
         // 4. TRATAMIENTOS - QUIMIOTERAPIA (ttocx)
         if (row[47] === 'Sí' || row[47] === 'SI' || row[47] === '1') { // V45RecibioQuimio
           const quimioterapiaData = {
-            V6NumID: V6NumId,
+            V6NumID: pacienteV6NumID,
             V45RecibioQuimio: row[47] ? String(row[47]).trim() : '',
             V46NumFasesQuimio: row[48] ? Number(row[48]) : 0,
             V47NumCiclosQuimio: row[49] ? Number(row[49]) : 0,
@@ -234,7 +256,7 @@ export class ExcelarchivoService {
         // 5. CIRUGÍA (ttoqt - assuming this is for surgery)
         if (row[86] === 'Sí' || row[86] === 'SI' || row[86] === '1') { // V74RecibioCirugia
           const cirugiaData = {
-            V6NumID: V6NumId,
+            V6NumID: pacienteV6NumID,
             V45RecibioQuimio: row[86] ? String(row[86]).trim() : '', // V74RecibioCirugia
             V46NumFasesQuimio: row[87] ? Number(row[87]) : 0, // V75NumCirugias
             V47NumCiclosQuimio: 0, // Not applicable
@@ -254,7 +276,7 @@ export class ExcelarchivoService {
         // 6. RADIOTERAPIA (ttort)
         if (row[98] === 'Sí' || row[98] === 'SI' || row[98] === '1') { // V86RecibioRadioterapia
           const radioterapiaData = {
-            V6NumID: V6NumId,
+            V6NumID: pacienteV6NumID,
             V86RecibioRadioterapia: row[98] ? String(row[98]).trim() : '',
             V87NumSesionesRadio: row[99] ? Number(row[99]) : 0,
             V88FecIniEsq1Radio: row[100] instanceof Date ? row[100] : row[100] ? new Date(row[100]) : undefined,
@@ -284,7 +306,7 @@ export class ExcelarchivoService {
         // 7. TRASPLANTE (ttotrasplante)
         if (row[118] === 'Sí' || row[118] === 'SI' || row[118] === '1') { // V106RecibioTrasplanteCM
           const trasplanteData = {
-            V6NumID: V6NumId,
+            V6NumID: pacienteV6NumID,
             V106RecibioTrasplanteCM: row[118] ? String(row[118]).trim() : '',
             V107TipoTrasplanteCM: row[119] ? String(row[119]).trim() : '',
             V108UbicTempTrasplanteCM: row[120] ? String(row[120]).trim() : '',
@@ -300,7 +322,7 @@ export class ExcelarchivoService {
         // 8. CIRUGÍA RECONSTRUCTIVA (ttocxreconstructiva)
         if (row[123] === 'Sí' || row[123] === 'SI' || row[123] === '1') { // V111RecibioCirugiaReconst
           const reconstructivaData = {
-            V6NumID: V6NumId,
+            V6NumID: pacienteV6NumID,
             V111RecibioCirugiaReconst: row[123] ? String(row[123]).trim() : '',
             V112FecCirugiaReconst: row[124] instanceof Date ? row[124] : row[124] ? new Date(row[124]) : new Date(),
             V113CodIPSCirugiaReconst: row[125] ? String(row[125]).trim() : '',
@@ -313,7 +335,7 @@ export class ExcelarchivoService {
         // 9. CUIDADOS PALIATIVOS (ttopaliativos)
         if (row[126] === 'Sí' || row[126] === 'SI' || row[126] === '1') { // V114RecibioCuidadoPaliativo
           const paliativosData = {
-            V6NumID: V6NumId,
+            V6NumID: pacienteV6NumID,
             V114RecibioCuidadoPaliativo: row[126] ? String(row[126]).trim() : '',
             V114_1CP_MedEspecialista: row[127] ? String(row[127]).trim() : '',
             V114_2CP_ProfSaludNoMed: row[128] ? String(row[128]).trim() : '',
