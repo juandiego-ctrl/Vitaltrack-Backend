@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import {
   Injectable,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -66,6 +67,7 @@ function parseDate(value: any): Date | undefined {
 
 @Injectable()
 export class ExcelarchivoService {
+  private readonly logger = new Logger(ExcelarchivoService.name);
   constructor(
     @InjectModel('Paciente') private pacienteModel: Model<IPaciente>,
     private pacienteService: PacienteService,
@@ -141,7 +143,7 @@ export class ExcelarchivoService {
 
   // CARGUE MASIVO COMPLETO → PROCESA TODOS LOS DATOS Y LOS DISTRIBUYE
   async procesarArchivoExcel(V6NumId: string, file: Express.Multer.File): Promise<any> {
-    console.log('🔍 Iniciando procesarArchivoExcel con V6NumId:', V6NumId);
+    this.logger.log(`🔍 Iniciando procesarArchivoExcel con V6NumId: ${V6NumId}`);
     if (!file) throw new BadRequestException('No se subió ningún archivo');
     if (!V6NumId) throw new BadRequestException('Falta la cédula del titular');
 
@@ -231,6 +233,8 @@ export class ExcelarchivoService {
           FechaIngreso: parseDate(row[16]),
         };
 
+        this.logger.log(`Fila ${i} - Datos paciente: V7FecNac=${row[6]}->${parseDate(row[6])}, V16FecAfiliacion=${row[15]}->${parseDate(row[15])}, FechaIngreso=${row[16]}->${parseDate(row[16])}`);
+
         // Guardar paciente
         console.log(`💾 Guardando paciente: ${pacienteV6NumID}`);
         const pacienteGuardado = await this.pacienteService.guardarDesdeArray([pacienteData]);
@@ -253,9 +257,9 @@ export class ExcelarchivoService {
         const pacienteIdStr = String(pacienteGuardado[0]?.paciente?._id || pacienteV6NumID);
 
         // 2. PROCESAR DIAGNÓSTICO (si tiene datos)
-        console.log(`🔍 Fila ${i}: V17=${row[17]}, V18=${row[18]}`);
+        this.logger.log(`🔍 Fila ${i}: V17=${row[17]}, V18=${row[18]}, V19=${row[19]}, V20=${row[20]}`);
         if (row[17] || row[18]) { // V17CodCIE10 o V18FecDiag
-          console.log(`🏥 Procesando diagnóstico para ${pacienteV6NumID}`);
+          this.logger.log(`🏥 Procesando diagnóstico para ${pacienteV6NumID}`);
           const diagnosticoData = {
             pacienteId: pacienteIdStr,
             V6NumID: pacienteV6NumID,
@@ -288,6 +292,8 @@ export class ExcelarchivoService {
             observaciones: row[43] ? String(row[43]).trim() : '',
           };
 
+          this.logger.log(`Fila ${i} - Fechas diagnóstico: V18=${row[18]}->${parseDate(row[18])}, V19=${row[19]}->${parseDate(row[19])}, V20=${row[20]}->${parseDate(row[20])}, V23=${row[23]}->${parseDate(row[23])}`);
+
           const diagnosticoResult = await this.diagnosticoService.guardarDesdeArray([diagnosticoData]);
           console.log(`📊 Resultado diagnóstico:`, diagnosticoResult);
           const diagnosticosCreados = diagnosticoResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
@@ -309,9 +315,9 @@ export class ExcelarchivoService {
         }
 
         // 4. TRATAMIENTOS - QUIMIOTERAPIA (ttocx)
-        console.log(`💊 Fila ${i}: V45RecibioQuimio = ${row[47]}, normalized: ${normalizeString(row[47])}`);
+        this.logger.log(`💊 Fila ${i}: V45RecibioQuimio = ${row[47]}, normalized: ${normalizeString(row[47])}`);
         if (normalizeString(row[47]) === 'si' || normalizeString(row[47]) === 'x' || row[47] === '1') { // V45RecibioQuimio
-          console.log(`🧪 Procesando quimioterapia para ${pacienteV6NumID}`);
+          this.logger.log(`🧪 Procesando quimioterapia para ${pacienteV6NumID}`);
           const quimioterapiaData = {
              pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
@@ -356,9 +362,9 @@ export class ExcelarchivoService {
           };
 
           const quimioterapiaResult = await this.ttocxService.guardarDesdeArray([quimioterapiaData]);
-          console.log(`📊 Resultado quimioterapia:`, quimioterapiaResult);
+          this.logger.log(`📊 Resultado quimioterapia: ${JSON.stringify(quimioterapiaResult)}`);
           const quimioCreados = quimioterapiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
-          console.log(`✅ Quimioterapias creadas: ${quimioCreados}`);
+          this.logger.log(`✅ Quimioterapias creadas: ${quimioCreados}`);
           resultadosTotales.tratamientos.quimioterapia += quimioCreados;
         }
 
@@ -466,7 +472,7 @@ export class ExcelarchivoService {
       }
     }
 
-    console.log('🏁 Procesamiento completo, resultados finales:', resultadosTotales);
+    this.logger.log(`🏁 Procesamiento completo, resultados finales: ${JSON.stringify(resultadosTotales)}`);
     return {
        ok: true,
        mensaje: 'Procesamiento completo del Excel',
