@@ -9,7 +9,7 @@ export const diagnosticoSchema = new mongoose.Schema(
       required: true,
     },
 
-    V6NumId: { type: String, required: true },
+    V6NumID: { type: String, required: true },
     id: Number,
     V17CodCIE10: String,
     V18FecDiag: Date,
@@ -72,7 +72,7 @@ export interface IDiagnostico extends mongoose.Document {
   V41IntervMed: string;
   agrupador: string;
   observaciones: string;
-  V6NumId: string;
+  V6NumID: string;
 }
 
 export const Diagnostico = mongoose.model<IDiagnostico>(

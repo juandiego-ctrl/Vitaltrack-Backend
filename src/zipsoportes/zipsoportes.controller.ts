@@ -1,13 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { zipsoportesService } from './zipsoportes.service';
-import { zipSoportesDto } from './zipsoportes.dto';
+import { ZipsoportesService } from './zipsoportes.service';
+import { ZipsoportesDto } from './zipsoportes.dto';
 
 @Controller('zipsoportes')
-export class zipsoportesController {
-  constructor(private readonly zipsoportesService: zipsoportesService) {}
+export class ZipsoportesController {
+  constructor(private readonly zipsoportesService: ZipsoportesService) {}
 
   @Post()
-  async crearZipsoportes(@Body() zipsoportesDto: zipSoportesDto) {
+  async crearZipsoportes(@Body() zipsoportesDto: ZipsoportesDto) {
     const respuesta = await this.zipsoportesService.crearZipsoportes(zipsoportesDto);
     return { ok: true, respuesta };
   }
@@ -32,7 +32,7 @@ export class zipsoportesController {
   }
 
   @Patch("/:id")
-  async actualizar(@Param("id") id: string, @Body() zipsoportesDto: zipSoportesDto) {
+  async actualizar(@Param('id') id: string, @Body() zipsoportesDto: ZipsoportesDto) {
     const zipsoportesActualizado = await this.zipsoportesService.actualizarZipsoportes(id, zipsoportesDto);
     if (zipsoportesActualizado) {
       return { ok: true, zipsoportesActualizado };

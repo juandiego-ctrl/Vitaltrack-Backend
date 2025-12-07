@@ -15,7 +15,7 @@ export const ttocxSchema = new mongoose.Schema(
     V83CodCUPSCir2: { type: String },
     V84UbicTempCir2: { type: String },
     V85EstVitalPostCir: { type: String },
-    V6NumId: { type: String, required: true }, // 🔹 sigue existiendo, es el ID institucional o del reporte
+    V6NumID: { type: String, required: true }, // 🔹 sigue existiendo, es el ID institucional o del reporte
   },
   { timestamps: true },
 );
@@ -34,5 +34,5 @@ export interface ITtocx extends Document {
   V83CodCUPSCir2: string;
   V84UbicTempCir2: string;
   V85EstVitalPostCir: string;
-  V6NumId: string;
+  V6NumID: string;
 }

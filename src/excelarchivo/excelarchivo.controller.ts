@@ -72,7 +72,7 @@ export class ExcelarchivoController {
       Number(page),
       Number(limit),
     );
-    
+
     return {
       ok: true,
       mensaje: 'Consulta general exitosa',
@@ -80,6 +80,21 @@ export class ExcelarchivoController {
       limit,
       total: pacientes.length,
       pacientes,
+    };
+  }
+
+  // 5. CARGUE MASIVO DE USUARIOS
+  @Post('cargar-usuarios')
+  @UseInterceptors(FileInterceptor('file'))
+  async cargarUsuarios(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('Debe subir un archivo Excel');
+
+    const resultado = await this.excelarchivoService.procesarArchivoExcelUsuarios(file);
+
+    return {
+      ok: true,
+      mensaje: `Cargue de usuarios exitoso. ${resultado.totalProcesados} usuarios procesados`,
+      detalles: resultado,
     };
   }
 }

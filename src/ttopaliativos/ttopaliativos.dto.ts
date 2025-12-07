@@ -1,6 +1,7 @@
 export class ttopaliativosDto {
-  readonly pacienteId: string;
-  V6NumId: string;
+  readonly pacienteId?: string;
+  id?: number;
+  V6NumID: string;
   V114RecibioCuidadoPaliativo: string;
   V114_1CP_MedEspecialista: string;
   V114_2CP_ProfSaludNoMed: string;

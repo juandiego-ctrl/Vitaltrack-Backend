@@ -8,7 +8,7 @@ export const ttotrasplanteSchema = new mongoose.Schema(
         V108UbicTempTrasplanteCM: String,
         V109FecTrasplanteCM: Date,
         V110CodIPSTrasplanteCM: String,
-        V6NumId: { type: String, required: true },
+        V6NumID: { type: String, required: true },
     }
 );
 
@@ -19,5 +19,5 @@ export interface ITtotrasplante extends mongoose.Document {
     V108UbicTempTrasplanteCM: string;
     V109FecTrasplanteCM: Date;
     V110CodIPSTrasplanteCM: string;
-    V6NumId: String;
+    V6NumID: String;
 }

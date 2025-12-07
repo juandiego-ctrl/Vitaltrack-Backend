@@ -105,4 +105,9 @@ export class MedicamentosService {
   async obtenerActivos() {
     return this.medicamentoModel.find({ activo: true }).exec();
   }
+
+  // Buscar medicamentos por paciente (por cédula)
+  async buscarPorPaciente(V6NumID: string) {
+    return this.medicamentoModel.find({ V6NumID }).exec();
+  }
 }

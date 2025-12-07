@@ -1,4 +1,4 @@
-export class zipSoportesDto {
+export class ZipsoportesDto {
     id: Number;
     nomZip: string;
     fecCarga: Date;

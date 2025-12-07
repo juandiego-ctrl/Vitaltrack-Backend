@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { administrativoDto } from './administrativo.dto';
+import { AdministrativoDto } from './administrativo.dto';
 import { IAdministrativo } from './administrativo.modelo';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class AdministrativoService {
   ) {}
 
   // Crear registro administrativo
-  async crearAdministrativo(administrativo: administrativoDto): Promise<IAdministrativo> {
+  async crearAdministrativo(administrativo: AdministrativoDto): Promise<IAdministrativo> {
     const creacion = new this.administrativoModel(administrativo);
     return await creacion.save();
   }
@@ -38,7 +38,7 @@ export class AdministrativoService {
   }
 
   // Actualizar registro por ID
-  async actualizarAdministrativo(id: string, administrativoDto: administrativoDto): Promise<IAdministrativo | null> {
+  async actualizarAdministrativo(id: string, administrativoDto: AdministrativoDto): Promise<IAdministrativo | null> {
     try {
       return await this.administrativoModel.findOneAndUpdate(
         { _id: id },
@@ -52,7 +52,7 @@ export class AdministrativoService {
   }
 
   // Guardar múltiples registros (Excel / Array) - preparado para centralizar cargue
-  async guardarDesdeArray(administrativos: administrativoDto[]): Promise<any> {
+  async guardarDesdeArray(administrativos: AdministrativoDto[]): Promise<any> {
     const resultados: { accion: string; administrativo?: IAdministrativo; error?: string }[] = [];
 
     for (const admin of administrativos) {

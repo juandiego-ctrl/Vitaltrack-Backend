@@ -13,14 +13,13 @@ export class DiagnosticoService {
 
   // Crear un diagnóstico
   async crearDiagnostico(dto: diagnosticoDto): Promise<IDiagnostico> {
-    if (!dto.V6NumId && !dto.V6NumId) {
+    if (!dto.V6NumID) {
       throw new Error('El diagnóstico debe tener el campo V6NumID del paciente.');
     }
 
-    // Normalizamos el nombre del campo por si viene como V6NumId
     const data = {
       ...dto,
-      V6NumId: dto.V6NumId || dto.V6NumId,
+      V6NumID: dto.V6NumID,
     };
 
     const creacion = new this.diagnosticoModel(data);
@@ -78,7 +77,7 @@ export class DiagnosticoService {
   }
 
   // ✅ Buscar diagnósticos por paciente (por cédula)
-  async buscarPorPaciente(V6NumId: string): Promise<IDiagnostico[]> {
-    return await this.diagnosticoModel.find({ V6NumId }).exec();
+  async buscarPorPaciente(V6NumID: string): Promise<IDiagnostico[]> {
+    return await this.diagnosticoModel.find({ V6NumID }).exec();
   }
 }

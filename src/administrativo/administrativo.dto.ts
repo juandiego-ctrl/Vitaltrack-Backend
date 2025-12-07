@@ -1,4 +1,4 @@
-export class administrativoDto {
+export class AdministrativoDto {
   V6NumID: string;
   V125TipoTtoCorte?: string;
   V126ResFinalManejoOnc?: string;

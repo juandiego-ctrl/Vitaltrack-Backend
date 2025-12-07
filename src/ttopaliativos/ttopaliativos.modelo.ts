@@ -20,7 +20,7 @@ export const ttopaliativosSchema = new mongoose.Schema(
     V122CodIPS_Nutr: String,
     V123TipoSoporteNutricional: String,
     V124TerapiasComplementarias: String,
-    V6NumId: { type: String, required: true },
+    V6NumID: { type: String, required: true },
   },
   { timestamps: true }
 );
@@ -44,5 +44,5 @@ export interface ITtopaliativos extends mongoose.Document {
   V122CodIPS_Nutr: string;
   V123TipoSoporteNutricional: string;
   V124TerapiasComplementarias: string;
-  V6NumId: string;
+  V6NumID: string;
 }

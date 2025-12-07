@@ -4,8 +4,11 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Medicamento extends Document {
-  @Prop({ required: true })
-  paciente: string;
+   @Prop({ required: true })
+   paciente: string;
+
+   @Prop({ required: true })
+   V6NumID: string;
 
   @Prop({ required: true })
   medicamento: string;

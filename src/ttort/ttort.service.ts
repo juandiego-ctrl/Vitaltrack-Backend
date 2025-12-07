@@ -44,22 +44,26 @@ export class TtortService {
   }
 
   // 🧩 Guardar desde arreglo (cargue masivo desde Excel)
-  async guardarDesdeArray(datos: any[]): Promise<void> {
-    if (!Array.isArray(datos) || datos.length === 0) return;
+  async guardarDesdeArray(datos: ttortDto[]): Promise<{ accion: string; ttort?: ITtort; error?: string }[]> {
+    const resultados: { accion: string; ttort?: ITtort; error?: string }[] = [];
 
-    const operaciones = datos.map(async (item) => {
-      if (!item.pacienteId) return;
+    for (const item of datos) {
+      try {
+        const existe = await this.ttortModel.findOne({ pacienteId: item.pacienteId }).exec();
 
-      const existe = await this.ttortModel.findOne({ pacienteId: item.pacienteId });
-
-      if (existe) {
-        await this.ttortModel.updateOne({ _id: existe._id }, item).exec();
-      } else {
-        const nuevo = new this.ttortModel(item);
-        await nuevo.save();
+        if (existe) {
+          const actualizado = await this.ttortModel.findByIdAndUpdate(existe._id, item, { new: true }).exec();
+          resultados.push({ accion: 'actualizado', ttort: actualizado ?? undefined });
+        } else {
+          const nuevo = new this.ttortModel(item);
+          const guardado = await nuevo.save();
+          resultados.push({ accion: 'creado', ttort: guardado });
+        }
+      } catch (error: any) {
+        resultados.push({ accion: 'error', error: error.message });
       }
-    });
+    }
 
-    await Promise.all(operaciones);
+    return resultados;
   }
 }

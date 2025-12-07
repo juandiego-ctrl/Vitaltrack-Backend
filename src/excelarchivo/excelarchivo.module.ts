@@ -14,6 +14,7 @@ import { ttopaliativosModule } from '../ttopaliativos/ttopaliativos.module';
 import { ttoqtModule } from '../ttoqt/ttoqt.module';
 import { ttortModule } from '../ttort/ttort.module';
 import { ttotrasplanteModule } from '../ttotrasplante/ttotrasplante.module';
+import { UsuarioModule } from '../usuario/usuario.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ttotrasplanteModule } from '../ttotrasplante/ttotrasplante.module';
     ttoqtModule,
     ttortModule,
     ttotrasplanteModule,
+    UsuarioModule,
   ],
   controllers: [ExcelarchivoController],
   providers: [ExcelarchivoService],

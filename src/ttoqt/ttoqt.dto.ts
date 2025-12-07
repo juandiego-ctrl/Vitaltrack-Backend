@@ -1,6 +1,7 @@
 export class ttoqtDto {
-    readonly pacienteId: string;
-    V6NumId: string;
+    readonly pacienteId?: string;
+    id?: number;
+    V6NumID: string;
     V45RecibioQuimio: string;
     V46NumFasesQuimio: number;
     V47NumCiclosQuimio: number;

@@ -6,7 +6,7 @@ export const ttocxreconstructivaSchema = new mongoose.Schema(
     V111RecibioCirugiaReconst: { type: String },
     V112FecCirugiaReconst: { type: Date },
     V113CodIPSCirugiaReconst: { type: String },
-    V6NumId: { type: String, required: true },
+    V6NumID: { type: String, required: true },
   },
   { timestamps: true }
 );
@@ -16,5 +16,5 @@ export interface ITtocxreconstructiva extends Document {
   V111RecibioCirugiaReconst: string;
   V112FecCirugiaReconst: Date;
   V113CodIPSCirugiaReconst: string;
-  V6NumId: string;
+  V6NumID: string;
 }

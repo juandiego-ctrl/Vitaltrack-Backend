@@ -8,14 +8,14 @@ import {
   Post,
 } from '@nestjs/common';
 import { AdministrativoService } from './administrativo.service';
-import { administrativoDto } from './administrativo.dto';
+import { AdministrativoDto } from './administrativo.dto';
 
 @Controller('administrativo')
-export class administrativoController {
+export class AdministrativoController {
   constructor(private readonly administrativoService: AdministrativoService) {}
 
   @Post()
-  async crearAdministrativo(@Body() administrativoDto: administrativoDto) {
+  async crearAdministrativo(@Body() administrativoDto: AdministrativoDto) {
     const respuesta = await this.administrativoService.crearAdministrativo(administrativoDto);
     return { ok: true, respuesta };
   }
@@ -40,7 +40,7 @@ export class administrativoController {
   }
 
   @Patch('/:id')
-  async actualizar(@Param('id') id: string, @Body() administrativoDto: administrativoDto) {
+  async actualizar(@Param('id') id: string, @Body() administrativoDto: AdministrativoDto) {
     const administrativoActualizado = await this.administrativoService.actualizarAdministrativo(id, administrativoDto);
     if (administrativoActualizado) {
       return { ok: true, administrativoActualizado };

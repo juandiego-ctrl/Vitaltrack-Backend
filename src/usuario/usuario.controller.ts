@@ -1,30 +1,30 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
-import { usuarioDto } from './usuario.dto';
+import { UsuarioDto } from './usuario.dto';
 
 @Controller('usuario')
 export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) { }
 
   @Post()
-  async crearUsuario(@Body() usuarioDto: usuarioDto) {
-    const respuesta = await this.usuarioService.CrearUsuario(usuarioDto);
+  async crearUsuario(@Body() usuarioDto: UsuarioDto) {
+    const respuesta = await this.usuarioService.crearUsuario(usuarioDto);
     return { ok: true, respuesta };
   }
 
   @Get("/:id")
-  async ConsultarUsuario(@Param("id") id: string) {
-    return await this.usuarioService.BuscarUsuario(id);
+  async consultarUsuario(@Param('id') id: string) {
+    return await this.usuarioService.buscarUsuario(id);
   }
 
   @Get()
-  async ConsultarTodos() {
-    return await this.usuarioService.BuscarTodo();
+  async consultarTodos() {
+    return await this.usuarioService.buscarTodos();
   }
 
   @Delete("/:id")
-  async Eliminar(@Param("id") id: string) {
-    const eliminar = await this.usuarioService.EliminarUsuario(id);
+  async eliminar(@Param('id') id: string) {
+    const eliminar = await this.usuarioService.eliminarUsuario(id);
     if (eliminar != null) {
       return "Usuario eliminado exitosamente";
     }
@@ -32,8 +32,8 @@ export class UsuarioController {
   }
 
   @Patch("/:id")
-  async Actualizar(@Param("id") id: string, @Body() usuarioDto: usuarioDto) {
-    const usuarioActualizado = await this.usuarioService.ActualizarUsuario(id, usuarioDto);
+  async actualizar(@Param('id') id: string, @Body() usuarioDto: UsuarioDto) {
+    const usuarioActualizado = await this.usuarioService.actualizarUsuario(id, usuarioDto);
     if (usuarioActualizado) {
       return { ok: true, usuarioActualizado };
     }

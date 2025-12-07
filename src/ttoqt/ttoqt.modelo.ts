@@ -41,7 +41,7 @@ export const ttoqtSchema = new mongoose.Schema(
         V71FecFinUltEsq: Date,
         V72CaractUltEsq: String,
         V73MotFinUltEsq: String,
-        V6NumId: { type: String, required: true },
+        V6NumID: { type: String, required: true },
     }
 );
 
@@ -85,5 +85,5 @@ export interface ITtoqt extends mongoose.Document {
     V71FecFinUltEsq: Date;
     V72CaractUltEsq: string;
     V73MotFinUltEsq: string;
-    V6NumId: String;
+    V6NumID: String;
 }

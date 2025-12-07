@@ -23,7 +23,7 @@ export const ttortSchema = new mongoose.Schema(
         V103FecFinUltEsqRadio: Date,
         V104CaractUltEsqRadio: String,
         V105MotFinUltEsqRadio: String,
-        V6NumId: { type: String, required: true },
+        V6NumID: { type: String, required: true },
     }
 );
 
@@ -49,5 +49,5 @@ export interface ITtort extends mongoose.Document {
     V103FecFinUltEsqRadio: Date;
     V104CaractUltEsqRadio: string;
     V105MotFinUltEsqRadio: string;
-    V6NumId: String;
+    V6NumID: String;
 }

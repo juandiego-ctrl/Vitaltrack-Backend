@@ -1,7 +1,7 @@
 export class diagnosticoDto {
-  readonly pacienteId: string; 
-  V6NumId: string;
-  id: number;
+  readonly pacienteId: string;
+  V6NumID: string;
+  id?: number;
   V17CodCIE10: string;
   V18FecDiag: Date | null;
   V19FecRemision: Date | null;

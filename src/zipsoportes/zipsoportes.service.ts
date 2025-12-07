@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { zipSoportesDto } from './zipsoportes.dto';
+import { ZipsoportesDto } from './zipsoportes.dto';
 import { IZipSoportes } from './zipsoportes.modelo';
 
 @Injectable()
-export class zipsoportesService {
+export class ZipsoportesService {
   constructor(@InjectModel('zipsoportes') private zipsoportesModel: Model<IZipSoportes>) {}
 
   // METODO PARA CREAR UN REGISTRO DE ARCHIVO ZIP
-  async crearZipsoportes(zipsoportes: zipSoportesDto): Promise<IZipSoportes> {
+  async crearZipsoportes(zipsoportes: ZipsoportesDto): Promise<IZipSoportes> {
     const creacion = new this.zipsoportesModel(zipsoportes);
     return await creacion.save();
   }
@@ -37,7 +37,7 @@ export class zipsoportesService {
   }
 
   // METODO PARA ACTUALIZAR UN REGISTRO DE ARCHIVO ZIP
-  async actualizarZipsoportes(id: string, zipsoportesDto: zipSoportesDto): Promise<IZipSoportes | null> {
+  async actualizarZipsoportes(id: string, zipsoportesDto: ZipsoportesDto): Promise<IZipSoportes | null> {
     try {
       const zipsoportesActualizado = await this.zipsoportesModel.findOneAndUpdate(
         { _id: id },

@@ -37,4 +37,9 @@ export class CitasService {
     const result = await this.citaModel.findByIdAndDelete(id).exec();
     if (!result) throw new NotFoundException(`Cita con id ${id} no encontrada`);
   }
+
+  // Buscar citas por paciente (por cédula)
+  async buscarPorPaciente(V6NumID: string): Promise<Cita[]> {
+    return await this.citaModel.find({ V6NumID }).exec();
+  }
 }

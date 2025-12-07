@@ -6,8 +6,11 @@ export type CitaDocument = Cita & Document;
 
 @Schema({ timestamps: true })
 export class Cita {
-  @Prop({ required: true })
-  pacienteId: string;
+   @Prop({ required: true })
+   pacienteId: string;
+
+   @Prop({ required: true })
+   V6NumID: string;
 
   @Prop({ required: true })
   medicoId: string;
