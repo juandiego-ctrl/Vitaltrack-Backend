@@ -233,7 +233,9 @@ export class ExcelarchivoService {
           FechaIngreso: parseDate(row[16]),
         };
 
-        this.logger.log(`Fila ${i} - Datos paciente: V7FecNac=${row[6]}->${parseDate(row[6])}, V16FecAfiliacion=${row[15]}->${parseDate(row[15])}, FechaIngreso=${row[16]}->${parseDate(row[16])}`);
+        this.logger.log(`Fila ${i} - Columna 6 (V7FecNac): ${row[6]} -> ${parseDate(row[6])}`);
+        this.logger.log(`Fila ${i} - Columna 15 (V16FecAfiliacion): ${row[15]} -> ${parseDate(row[15])}`);
+        this.logger.log(`Fila ${i} - Columna 16 (FechaIngreso): ${row[16]} -> ${parseDate(row[16])}`);
 
         // Guardar paciente
         console.log(`💾 Guardando paciente: ${pacienteV6NumID}`);
@@ -257,7 +259,10 @@ export class ExcelarchivoService {
         const pacienteIdStr = String(pacienteGuardado[0]?.paciente?._id || pacienteV6NumID);
 
         // 2. PROCESAR DIAGNÓSTICO (si tiene datos)
-        this.logger.log(`🔍 Fila ${i}: V17=${row[17]}, V18=${row[18]}, V19=${row[19]}, V20=${row[20]}`);
+        this.logger.log(`Fila ${i} - Columna 17 (V17CodCIE10): ${row[17]}`);
+        this.logger.log(`Fila ${i} - Columna 18 (V18FecDiag): ${row[18]} -> ${parseDate(row[18])}`);
+        this.logger.log(`Fila ${i} - Columna 19 (V19FecRemision): ${row[19]} -> ${parseDate(row[19])}`);
+        this.logger.log(`Fila ${i} - Columna 20 (V20FecIngInst): ${row[20]} -> ${parseDate(row[20])}`);
         if (row[17] || row[18]) { // V17CodCIE10 o V18FecDiag
           this.logger.log(`🏥 Procesando diagnóstico para ${pacienteV6NumID}`);
           const diagnosticoData = {
@@ -292,7 +297,6 @@ export class ExcelarchivoService {
             observaciones: row[43] ? String(row[43]).trim() : '',
           };
 
-          this.logger.log(`Fila ${i} - Fechas diagnóstico: V18=${row[18]}->${parseDate(row[18])}, V19=${row[19]}->${parseDate(row[19])}, V20=${row[20]}->${parseDate(row[20])}, V23=${row[23]}->${parseDate(row[23])}`);
 
           const diagnosticoResult = await this.diagnosticoService.guardarDesdeArray([diagnosticoData]);
           console.log(`📊 Resultado diagnóstico:`, diagnosticoResult);
@@ -315,7 +319,11 @@ export class ExcelarchivoService {
         }
 
         // 4. TRATAMIENTOS - QUIMIOTERAPIA (ttocx)
-        this.logger.log(`💊 Fila ${i}: V45RecibioQuimio = ${row[47]}, normalized: ${normalizeString(row[47])}`);
+        this.logger.log(`Fila ${i} - Columna 47 (V45RecibioQuimio): ${row[47]}, normalized: ${normalizeString(row[47])}`);
+        this.logger.log(`Fila ${i} - Columna 98 (V86RecibioRadioterapia): ${row[98]}, normalized: ${normalizeString(row[98])}`);
+        this.logger.log(`Fila ${i} - Columna 118 (V106RecibioTrasplanteCM): ${row[118]}, normalized: ${normalizeString(row[118])}`);
+        this.logger.log(`Fila ${i} - Columna 123 (V111RecibioCirugiaReconst): ${row[123]}, normalized: ${normalizeString(row[123])}`);
+        this.logger.log(`Fila ${i} - Columna 126 (V114RecibioCuidadoPaliativo): ${row[126]}, normalized: ${normalizeString(row[126])}`);
         if (normalizeString(row[47]) === 'si' || normalizeString(row[47]) === 'x' || row[47] === '1') { // V45RecibioQuimio
           this.logger.log(`🧪 Procesando quimioterapia para ${pacienteV6NumID}`);
           const quimioterapiaData = {
@@ -465,6 +473,7 @@ export class ExcelarchivoService {
         }
 
       } catch (error: any) {
+        this.logger.error(`❌ Error en fila ${i + 1}: ${error.message}`);
         resultadosTotales.errores.push({
           fila: i + 1,
           error: error.message
