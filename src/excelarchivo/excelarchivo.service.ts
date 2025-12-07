@@ -51,6 +51,36 @@ export class ExcelarchivoService {
     @InjectModel('zipsoportes') private zipsoportesModel: Model<any>,
   ) {}
 
+  // CARGUE MASIVO AUTOMÁTICO → LEE V6NumID DEL EXCEL
+  async procesarArchivoExcelAutomatico(file: Express.Multer.File): Promise<any> {
+    if (!file) throw new BadRequestException('No se subió ningún archivo');
+
+    const workbook = XLSX.read(file.buffer, { type: 'buffer', cellDates: true });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+
+    if (!data || data.length <= 1) {
+      throw new BadRequestException('Excel vacío o sin datos');
+    }
+
+    // DETECTAR V6NumID de la primera fila de datos (fila 1, asumiendo fila 0 son headers)
+    const primeraFila = data[1]; // Fila 1 (índice 1)
+    const V6NumIdDetectado = primeraFila[5] ? String(primeraFila[5]).trim() : null; // Columna 5 = V6NumID
+
+    if (!V6NumIdDetectado || V6NumIdDetectado === '') {
+      throw new BadRequestException('No se pudo detectar V6NumID en el archivo Excel. Verifique que la columna F (posición 5) contenga el número de identificación.');
+    }
+
+    console.log(`🔍 V6NumID detectado automáticamente: ${V6NumIdDetectado}`);
+
+    // Usar el método existente con el V6NumID detectado
+    const resultado = await this.procesarArchivoExcel(V6NumIdDetectado, file);
+    return {
+      ...resultado,
+      cedulaDetectada: V6NumIdDetectado
+    };
+  }
+
   // CARGUE MASIVO COMPLETO → PROCESA TODOS LOS DATOS Y LOS DISTRIBUYE
   async procesarArchivoExcel(V6NumId: string, file: Express.Multer.File): Promise<any> {
     if (!file) throw new BadRequestException('No se subió ningún archivo');

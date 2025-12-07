@@ -15,7 +15,23 @@ import { ExcelarchivoService } from './excelarchivo.service';
 export class ExcelarchivoController {
   constructor(private readonly excelarchivoService: ExcelarchivoService) {}
 
-  // 1. CARGUE MASIVO
+  // 1. CARGUE MASIVO AUTOMÁTICO
+  @Post('cargar-pacientes')
+  @UseInterceptors(FileInterceptor('file'))
+  async cargarPacientes(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('Debe subir un archivo Excel');
+
+    const resultado = await this.excelarchivoService.procesarArchivoExcelAutomatico(file);
+
+    return {
+      ok: true,
+      mensaje: `Cargue exitoso. ${resultado.insertados} pacientes procesados`,
+      cedulaTitular: resultado.cedulaDetectada,
+      detalles: resultado,
+    };
+  }
+
+  // 1b. CARGUE MASIVO MANUAL (para compatibilidad)
   @Post('cargar-pacientes/:V6NumID')
   @UseInterceptors(FileInterceptor('file'))
   async cargarPacientesPorTitular(
