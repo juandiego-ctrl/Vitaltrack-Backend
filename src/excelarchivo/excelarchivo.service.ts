@@ -306,8 +306,12 @@ export class ExcelarchivoService {
         }
 
         // 3. ANTECEDENTES (cáncer previo)
-        if (row[44] || row[45] || row[46]) { // V42, V43, V44
-          const antecedenteData = {
+         this.logger.log(`Fila ${i} - Columna 44 (V42AntCancerPrim): ${row[44]}`);
+         this.logger.log(`Fila ${i} - Columna 45 (V43FecDiagAnt): ${row[45]} -> ${parseDate(row[45])}`);
+         this.logger.log(`Fila ${i} - Columna 46 (V44TipoCancerAnt): ${row[46]}`);
+         if (row[44] || row[45] || row[46]) { // V42, V43, V44
+           this.logger.log(`📋 Procesando antecedentes para ${pacienteV6NumID}`);
+           const antecedenteData = {
             V6NumID: pacienteV6NumID,
             V42AntCancerPrim: row[44] ? String(row[44]).trim() : '',
             V43FecDiagAnt: parseDate(row[45]) || new Date(),
@@ -377,15 +381,23 @@ export class ExcelarchivoService {
         }
 
         // 5. CIRUGÍA (ttoqt - pendiente de mapeo completo)
-         // TODO: Completar mapeo de todos los campos requeridos del DTO ttoqtDto
-         // if (normalizeString(row[86]) === 'si' || row[86] === '1') {
+          // TODO: Completar mapeo de todos los campos requeridos del DTO ttoqtDto
+          this.logger.log(`Fila ${i} - Columna 86 (V74RecibioCirugia): ${row[86]}, normalized: ${normalizeString(row[86])}`);
+          if (normalizeString(row[86]) === 'si' || normalizeString(row[86]) === 'x' || row[86] === '1') {
+            this.logger.log(`🔪 Procesando cirugía general para ${pacienteV6NumID}`);
+            // TODO: Implementar datos de cirugía
+            // const cirugiaData = { ... };
+            // const cirugiaResult = await this.ttoqtService.guardarDesdeArray([cirugiaData]);
+            // resultadosTotales.tratamientos.cirugia += cirugiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          }
         //   const cirugiaResult = await this.ttoqtService.guardarDesdeArray([cirugiaData]);
         //   resultadosTotales.tratamientos.cirugia += cirugiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
         // }
 
         // 6. RADIOTERAPIA (ttort)
          if (normalizeString(row[98]) === 'si' || normalizeString(row[98]) === 'x' || row[98] === '1') { // V86RecibioRadioterapia
-          const radioterapiaData = {
+           this.logger.log(`🩻 Procesando radioterapia para ${pacienteV6NumID}`);
+           const radioterapiaData = {
              pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
              V86RecibioRadioterapia: 'Sí',
@@ -416,7 +428,8 @@ export class ExcelarchivoService {
 
         // 7. TRASPLANTE (ttotrasplante)
          if (normalizeString(row[118]) === 'si' || normalizeString(row[118]) === 'x' || row[118] === '1') { // V106RecibioTrasplanteCM
-          const trasplanteData = {
+           this.logger.log(`🫀 Procesando trasplante para ${pacienteV6NumID}`);
+           const trasplanteData = {
              pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
              V106RecibioTrasplanteCM: 'Sí',
@@ -432,7 +445,8 @@ export class ExcelarchivoService {
 
         // 8. CIRUGÍA RECONSTRUCTIVA (ttocxreconstructiva)
          if (normalizeString(row[123]) === 'si' || normalizeString(row[123]) === 'x' || row[123] === '1') { // V111RecibioCirugiaReconst
-          const reconstructivaData = {
+           this.logger.log(`🔪 Procesando cirugía reconstructiva para ${pacienteV6NumID}`);
+           const reconstructivaData = {
              pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
              V111RecibioCirugiaReconst: 'Sí',
@@ -446,7 +460,8 @@ export class ExcelarchivoService {
 
         // 9. CUIDADOS PALIATIVOS (ttopaliativos)
          if (normalizeString(row[126]) === 'si' || normalizeString(row[126]) === 'x' || row[126] === '1') { // V114RecibioCuidadoPaliativo
-          const paliativosData = {
+           this.logger.log(`🩺 Procesando cuidados paliativos para ${pacienteV6NumID}`);
+           const paliativosData = {
              pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
              V114RecibioCuidadoPaliativo: 'Sí',
