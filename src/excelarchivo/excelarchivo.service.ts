@@ -312,11 +312,11 @@ export class ExcelarchivoService {
          if (row[44] || row[45] || row[46]) { // V42, V43, V44
            this.logger.log(`📋 Procesando antecedentes para ${pacienteV6NumID}`);
            const antecedenteData = {
-            V6NumID: pacienteV6NumID,
-            V42AntCancerPrim: row[44] ? String(row[44]).trim() : '',
-            V43FecDiagAnt: parseDate(row[45]) || new Date(),
-            V44TipoCancerAnt: row[46] ? String(row[46]).trim() : '',
-          };
+             V6NumId: pacienteV6NumID,
+             V42AntCancerPrim: row[44] ? String(row[44]).trim() : '',
+             V43FecDiagAnt: parseDate(row[45]) || new Date(),
+             V44TipoCancerAnt: row[46] ? String(row[46]).trim() : '',
+           };
 
           const antecedenteResult = await this.antecedentesService.guardarDesdeArray([antecedenteData]);
           this.logger.log(`📊 Resultado antecedentes: ${JSON.stringify(antecedenteResult)}`);
@@ -405,22 +405,22 @@ export class ExcelarchivoService {
              V6NumID: pacienteV6NumID,
              V86RecibioRadioterapia: 'Sí',
             V87NumSesionesRadio: row[99] ? Number(row[99]) : 0,
-            V88FecIniEsq1Radio: row[100] instanceof Date ? row[100] : row[100] ? new Date(row[100]) : undefined,
+            V88FecIniEsq1Radio: parseDate(row[100]),
             V89UbicTempEsq1Radio: row[101] ? String(row[101]).trim() : '',
             V90TipoRadioEsq1: row[102] ? String(row[102]).trim() : '',
             V91NumIPSRadioEsq1: row[103] ? Number(row[103]) : 0,
             V92CodIPSRadio1Esq1: row[104] ? String(row[104]).trim() : '',
             V93CodIPSRadio2Esq1: row[105] ? String(row[105]).trim() : '',
-            V94FecFinEsq1Radio: row[106] instanceof Date ? row[106] : row[106] ? new Date(row[106]) : undefined,
+            V94FecFinEsq1Radio: parseDate(row[106]),
             V95CaractEsq1Radio: row[107] ? String(row[107]).trim() : '',
             V96MotFinEsq1Radio: row[108] ? String(row[108]).trim() : '',
-            V97FecIniUltEsqRadio: row[109] instanceof Date ? row[109] : row[109] ? new Date(row[109]) : undefined,
+            V97FecIniUltEsqRadio: parseDate(row[109]),
             V98UbicTempUltEsqRadio: row[110] ? String(row[110]).trim() : '',
             V99TipoRadioUltEsq: row[111] ? String(row[111]).trim() : '',
             V100NumIPSRadioUltEsq: row[112] ? Number(row[112]) : 0,
             V101CodIPSRadio1UltEsq: row[113] ? String(row[113]).trim() : '',
             V102CodIPSRadio2UltEsq: row[114] ? String(row[114]).trim() : '',
-            V103FecFinUltEsqRadio: row[115] instanceof Date ? row[115] : row[115] ? new Date(row[115]) : undefined,
+            V103FecFinUltEsqRadio: parseDate(row[115]),
             V104CaractUltEsqRadio: row[116] ? String(row[116]).trim() : '',
             V105MotFinUltEsqRadio: row[117] ? String(row[117]).trim() : '',
           };
@@ -465,8 +465,9 @@ export class ExcelarchivoService {
         }
 
         // 9. CUIDADOS PALIATIVOS (ttopaliativos)
-         if (normalizeString(row[126]) === 'si' || normalizeString(row[126]) === 'x' || row[126] === '1') { // V114RecibioCuidadoPaliativo
-           this.logger.log(`🩺 Procesando cuidados paliativos para ${pacienteV6NumID}`);
+        this.logger.log(`Fila ${i} - Antes de if paliativos`);
+        if (normalizeString(row[126]) === 'si' || normalizeString(row[126]) === 'x' || row[126] === '1') { // V114RecibioCuidadoPaliativo
+          this.logger.log(`🩺 Procesando cuidados paliativos para ${pacienteV6NumID}`);
            const paliativosData = {
              pacienteId: pacienteIdStr,
              V6NumID: pacienteV6NumID,
