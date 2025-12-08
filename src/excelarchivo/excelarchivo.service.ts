@@ -319,7 +319,10 @@ export class ExcelarchivoService {
           };
 
           const antecedenteResult = await this.antecedentesService.guardarDesdeArray([antecedenteData]);
-          resultadosTotales.antecedentes += antecedenteResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          this.logger.log(`📊 Resultado antecedentes: ${JSON.stringify(antecedenteResult)}`);
+          const antecedentesCreados = antecedenteResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          this.logger.log(`✅ Antecedentes creados: ${antecedentesCreados}`);
+          resultadosTotales.antecedentes += antecedentesCreados;
         }
 
         // 4. TRATAMIENTOS - QUIMIOTERAPIA (ttocx)
@@ -423,7 +426,10 @@ export class ExcelarchivoService {
           };
 
           const radioterapiaResult = await this.ttortService.guardarDesdeArray([radioterapiaData]);
-          resultadosTotales.tratamientos.radioterapia += radioterapiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          this.logger.log(`📊 Resultado radioterapia: ${JSON.stringify(radioterapiaResult)}`);
+          const radioCreados = radioterapiaResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          this.logger.log(`✅ Radioterapias creadas: ${radioCreados}`);
+          resultadosTotales.tratamientos.radioterapia += radioCreados;
         }
 
         // 7. TRASPLANTE (ttotrasplante)
@@ -484,7 +490,10 @@ export class ExcelarchivoService {
           };
 
           const paliativosResult = await this.ttopaliativosService.guardarDesdeArray([paliativosData]);
-          resultadosTotales.tratamientos.paliativos += paliativosResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          this.logger.log(`📊 Resultado paliativos: ${JSON.stringify(paliativosResult)}`);
+          const paliativosCreados = paliativosResult.filter(r => r.accion === 'creado' || r.accion === 'actualizado').length;
+          this.logger.log(`✅ Paliativos creados: ${paliativosCreados}`);
+          resultadosTotales.tratamientos.paliativos += paliativosCreados;
         }
 
       } catch (error: any) {
