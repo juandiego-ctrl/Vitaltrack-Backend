@@ -12,8 +12,8 @@ export class AntecedentesService {
   ) {}
 
   async crearAntecedente(data: AntecedentesDto): Promise<IAntecedentes> {
-    if (!data.V6NumID) {
-      throw new Error('El campo V6NumID es obligatorio para asociar el antecedente al paciente.');
+    if (!data.V6NumId) {
+      throw new Error('El campo V6NumId es obligatorio para asociar el antecedente al paciente.');
     }
     const nuevo = new this.antecedentesModel(data);
     return await nuevo.save();
@@ -52,7 +52,7 @@ export class AntecedentesService {
     return resultados;
   }
 
-  async buscarPorPaciente(V6NumID: string): Promise<IAntecedentes[]> {
-    return await this.antecedentesModel.find({ V6NumID }).exec();
+  async buscarPorPaciente(V6NumId: string): Promise<IAntecedentes[]> {
+    return await this.antecedentesModel.find({ V6NumId }).exec();
   }
 }
