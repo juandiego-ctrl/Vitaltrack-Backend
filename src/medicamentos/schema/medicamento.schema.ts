@@ -6,9 +6,9 @@ import { Document } from 'mongoose';
 export class Medicamento extends Document {
    @Prop({ required: true })
    paciente: string;
-
-   @Prop({ required: true })
-   V6NumID: string;
+ 
+    @Prop()
+    V6NumID: string;
 
   @Prop({ required: true })
   medicamento: string;
